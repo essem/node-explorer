@@ -1,0 +1,33 @@
+{
+  "name": "node_explorer",
+  "version": "1.0.0",
+  "description": "File explorer via web.",
+  "main": "index.js",
+  "scripts": {
+    "start": "NODE_ENV=production node index.js",
+    "build": "webpack",
+    "eslint": "eslint .",
+    "dev-back": "NODE_ENV=development nodemon -w app/server --use_strict index.js",
+    "dev-front": "webpack-dev-server --devtool eval --progress --colors --host 0.0.0.0 --port 5001 --content-base http://localhost:5000"
+  },
+  "author": "essem",
+  "license": "ISC",
+  "dependencies": {
+    "babel": "^5.8.29",
+    "koa": "^1.1.1",
+    "koa-ejs": "^2.0.1",
+    "koa-static": "^1.5.1",
+    "react": "^0.14.1",
+    "react-bootstrap": "^0.27.3",
+    "react-dom": "^0.14.1"
+  },
+  "devDependencies": {
+    "babel-core": "^5.8.29",
+    "babel-loader": "^5.3.2",
+    "eslint": "^1.8.0",
+    "eslint-plugin-react": "^3.6.3",
+    "nodemon": "^1.8.0",
+    "webpack": "^1.12.2",
+    "webpack-dev-server": "^1.12.1"
+  }
+}

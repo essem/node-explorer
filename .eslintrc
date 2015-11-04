@@ -1,0 +1,27 @@
+{
+  "extends": "eslint:recommended",
+  "ecmaFeatures": {
+    "modules": true,
+    "classes": true,
+    "jsx": true,
+    "blockBindings": true,
+    "generators": true,
+    "templateStrings": true,
+    "arrowFunctions": true,
+    "destructuring": true,
+    "forOf": true,
+    "spread": true,
+    "restParams": true
+  },
+  "rules": {
+    "no-console": 0,
+    "semi": 2
+  },
+  "env": {
+    "node": true,
+    "browser": true
+  },
+  "plugins": [
+    "react"
+  ]
+}
