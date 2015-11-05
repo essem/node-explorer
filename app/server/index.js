@@ -2,6 +2,30 @@ import koa from 'koa';
 import koaStatic from 'koa-static';
 import ejs from 'koa-ejs';
 import path from 'path';
+import fs from 'fs';
+
+function promisify(func) {
+  return function() {
+    var params = arguments;
+    return new Promise(function(resolve, reject) {
+      func(...params, function(err, ...results) {
+        if (err) {
+          reject(err);
+        } else {
+          if (results.length == 0) {
+            resolve();
+          } else if (results.length == 1) {
+            resolve(results[0]);
+          } else {
+            resolve(results);
+          }
+        }
+      });
+    });
+  };
+}
+
+let readdir = promisify(fs.readdir);
 
 let port = 5000;
 
@@ -24,6 +48,17 @@ ejs(app, {
 });
 
 app.use(function*() {
+  let result = /^\/api\/dir\/?(.*)/.exec(this.url);
+  if (result) {
+    let dir = path.resolve('/', result[1].replace('..', ''));
+    let files = yield readdir(dir);
+    files = files.map(function(file) {
+       let stats = fs.lstatSync(path.resolve(dir, file));
+       return { name: file, isDirectory: stats.isDirectory() };
+    });
+    this.body = files;
+    return;
+  }
   let bundlePath = 'bundle.js';
   if (process.env.NODE_ENV != 'production') {
     bundlePath = 'http://localhost:5001/assets/bundle.js';
