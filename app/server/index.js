@@ -50,7 +50,12 @@ ejs(app, {
 app.use(function*() {
   let result = /^\/api\/dir\/?(.*)/.exec(this.url);
   if (result) {
-    let dir = path.resolve('/', result[1].replace('..', ''));
+    let dir = decodeURIComponent(result[1]);
+    if (dir.indexOf('..') != -1) {
+      this.body = 'invalid dir';
+      return;
+    }
+    dir = path.resolve('/', dir);
     let files = yield readdir(dir);
     files = files.map(function(file) {
       let stats = fs.lstatSync(path.resolve(dir, file));
