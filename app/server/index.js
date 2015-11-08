@@ -1,4 +1,5 @@
 import koa from 'koa';
+import koaAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
 import ejs from 'koa-ejs';
 import path from 'path';
@@ -27,7 +28,15 @@ function promisify(func) {
 
 let readdir = promisify(fs.readdir);
 
-let port = 5000;
+var config = null;
+try {
+  config = require('../../config');
+} catch (err) {
+  console.log('Failed to load config file.', err);
+  process.exit();
+}
+
+let port = config.port;
 
 let app = koa();
 
@@ -37,6 +46,22 @@ app.use(function*(next){
   let ms = new Date - start;
   console.log('%s %s - %s ms', this.method, this.url, ms);
 });
+
+app.use(function *(next){
+  try {
+    yield next;
+  } catch (err) {
+    if (401 == err.status) {
+      this.status = 401;
+      this.set('WWW-Authenticate', 'Basic');
+      this.body = 'Enter account and password.';
+    } else {
+      throw err;
+    }
+  }
+});
+
+app.use(koaAuth(config.auth));
 
 app.use(koaStatic('public'));
 
