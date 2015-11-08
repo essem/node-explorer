@@ -53,8 +53,13 @@ app.use(function*() {
     let dir = path.resolve('/', result[1].replace('..', ''));
     let files = yield readdir(dir);
     files = files.map(function(file) {
-       let stats = fs.lstatSync(path.resolve(dir, file));
-       return { name: file, isDirectory: stats.isDirectory() };
+      let stats = fs.lstatSync(path.resolve(dir, file));
+      return {
+        name: file,
+        isDirectory: stats.isDirectory(),
+        size: stats.size,
+        mtime: stats.mtime.getTime()
+      };
     });
     this.body = files;
     return;

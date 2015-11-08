@@ -1,0 +1,18 @@
+#app {
+  padding: 30px;
+}
+
+table.explorer {
+  width: 700px;
+}
+
+.glyphicon-menu-right {
+  margin-left: 10px;
+  margin-right: 10px;
+  font-size: 60%;
+  color: #888;
+}
+
+.glyphicon-folder-close {
+  margin-right: 5px;
+}
