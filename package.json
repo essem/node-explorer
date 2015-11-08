@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "NODE_ENV=production node index.js",
-    "build": "webpack",
+    "build": "rm -f public/* && NODE_ENV=production webpack --config ./webpack.production.config.js --progress --profile --colors",
     "eslint": "eslint .",
     "dev-back": "NODE_ENV=development nodemon -w app/server --use_strict index.js",
     "dev-front": "webpack-dev-server --devtool eval --progress --colors --host 0.0.0.0 --port 5001 --content-base http://localhost:5000"

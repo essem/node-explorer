@@ -1,0 +1,5 @@
+.*
+Dockerfile
+webpack.config.js
+node_modules
+app/client
