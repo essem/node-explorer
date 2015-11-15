@@ -1,6 +1,7 @@
 import koa from 'koa';
 import koaAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
+import sendfile from 'koa-sendfile';
 import ejs from 'koa-ejs';
 import path from 'path';
 import fs from 'fs';
@@ -94,6 +95,22 @@ app.use(function*() {
     this.body = files;
     return;
   }
+
+  result = /^\/api\/download\/?(.*)/.exec(this.url);
+  if (result) {
+    let filepath = decodeURIComponent(result[1]);
+    if (filepath.indexOf('..') != -1) {
+      this.body = 'invalid dir';
+      return;
+    }
+    filepath = path.resolve('/', filepath);
+    yield* sendfile.call(this, filepath);
+    if (!this.status) {
+      this.throw(404);
+    }
+    return;
+  }
+
   let bundlePath = 'bundle.js';
   if (process.env.NODE_ENV != 'production') {
     bundlePath = 'http://localhost:5001/assets/bundle.js';

@@ -6,6 +6,13 @@ table.explorer {
   width: 700px;
 }
 
+table.explorer tr td {
+  padding: 0px;
+  height: 40px;
+  line-height: 40px;
+  padding: 0px 10px;
+}
+
 .glyphicon-menu-right {
   margin-left: 10px;
   margin-right: 10px;

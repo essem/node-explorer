@@ -3,7 +3,7 @@ require("./style.css");
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Table, Glyphicon } from 'react-bootstrap';
+import { Button, Table, Glyphicon } from 'react-bootstrap';
 
 function intersperse(arr, sep) {
   if (arr.length === 0) {
@@ -50,22 +50,45 @@ class Location extends React.Component {
 class File extends React.Component {
   constructor() {
     super();
-    this.handleClick = this.handleClick.bind(this);
+    this.state = { fileClicked: false };
+    this.handleDirClick = this.handleDirClick.bind(this);
+    this.handleFileEnter = this.handleFileEnter.bind(this);
+    this.handleFileLeave = this.handleFileLeave.bind(this);
   }
 
-  handleClick() {
-    this.props.onClick(this.props.name);
+  handleDirClick() {
+    this.props.onDirClick(this.props.name);
+  }
+
+  handleFileEnter() {
+    this.setState({ fileClicked: true });
+  }
+
+  handleFileLeave() {
+    this.setState({ fileClicked: false });
   }
 
   render() {
     if (this.props.isDirectory) {
       return (
-        <div className="file" onClick={this.handleClick}>
+        <div className="file" onClick={this.handleDirClick}>
           <Glyphicon glyph="folder-close" /> {this.props.name}
         </div>
       );
+    } else if (this.state.fileClicked) {
+      return (
+        <div className="file" onMouseLeave={this.handleFileLeave}>
+          <form method="get" action={'/api/download/' + this.props.dir.join('/') + '/' + this.props.name}>
+            <Button type="submit" bsStyle="primary" bsSize="xsmall">Download</Button>
+          </form>
+        </div>
+      );
     } else {
-      return <div className="file">{this.props.name}</div>;
+      return (
+        <div className="file" onMouseEnter={this.handleFileEnter}>
+          {this.props.name}
+        </div>
+      );
     }
   }
 }
@@ -75,7 +98,7 @@ class App extends React.Component {
     super();
     this.state = { dir: [], files: [] };
     this.handleLocationClick = this.handleLocationClick.bind(this);
-    this.handleFileClick = this.handleFileClick.bind(this);
+    this.handleDirClick = this.handleDirClick.bind(this);
   }
 
   componentDidMount() {
@@ -116,7 +139,7 @@ class App extends React.Component {
     this.queryFiles(this.state.dir.slice(0, index));
   }
 
-  handleFileClick(name) {
+  handleDirClick(name) {
     let newDir = this.state.dir.slice(0);
     newDir.push(name);
     this.queryFiles(newDir);
@@ -127,7 +150,7 @@ class App extends React.Component {
       return (
         <tr>
           <td>
-            <File key={file.name} {...file} onClick={this.handleFileClick} />
+            <File key={file.name} dir={this.state.dir} {...file} onDirClick={this.handleDirClick} />
           </td>
           <td>{file.size}</td>
           <td>{file.mtime}</td>
@@ -141,7 +164,7 @@ class App extends React.Component {
           <thead>
             <tr>
               <th>Name</th>
-              <th width="100px"> Size</th>
+              <th width="130px"> Size</th>
               <th width="200px">Modified</th>
             </tr>
           </thead>
