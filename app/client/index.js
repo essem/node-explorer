@@ -3,7 +3,9 @@ require("./style.css");
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Button, Table, Glyphicon } from 'react-bootstrap';
+import { Alert, Button, Table, Glyphicon } from 'react-bootstrap';
+import Dropzone from 'react-dropzone';
+import request from 'superagent';
 
 function intersperse(arr, sep) {
   if (arr.length === 0) {
@@ -96,9 +98,10 @@ class File extends React.Component {
 class App extends React.Component {
   constructor() {
     super();
-    this.state = { dir: [], files: [] };
+    this.state = { dir: [], files: [], upload: [], uploadAlert: '' };
     this.handleLocationClick = this.handleLocationClick.bind(this);
     this.handleDirClick = this.handleDirClick.bind(this);
+    this.handleFileDrop = this.handleFileDrop.bind(this);
   }
 
   componentDidMount() {
@@ -145,6 +148,28 @@ class App extends React.Component {
     this.queryFiles(newDir);
   }
 
+  handleFileDrop(files) {
+    this.setState({ upload: files });
+
+    let req = request.post("/api/upload" + this.makeDirStr(this.state.dir));
+    files.forEach(file => {
+      req.attach(file.name, file);
+    });
+    req.end((err) => {
+      let alertStyle = {
+        width: '800px',
+        marginTop: '10px',
+        padding: '5px 10px'
+      };
+      if (err) {
+        this.setState({ upload: [], uploadAlert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
+      } else {
+        this.queryFiles(this.state.dir);
+        this.setState({ upload: [], uploadAlert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+      }
+    });
+  }
+
   render() {
     let files = this.state.files.map(file => {
       return (
@@ -157,6 +182,36 @@ class App extends React.Component {
         </tr>
       );
     });
+
+    let uploadDiv = '';
+    if (this.state.upload.length == 0) {
+      let dropzoneStyle = {
+        width: '800px',
+        height: '50px',
+        lineHeight: '50px',
+        textAlign: 'center',
+        backgroundColor: '#EEE',
+        borderRadius: '5px',
+        border: '2px dashed #C7C7C7'
+      };
+      let dropzoneActiveStyle = {
+        width: '800px',
+        height: '50px',
+        lineHeight: '50px',
+        textAlign: 'center',
+        backgroundColor: '#AAA',
+        borderRadius: '5px',
+        border: '2px dashed black'
+      };
+      uploadDiv = (
+        <Dropzone style={dropzoneStyle} activeStyle={dropzoneActiveStyle} onDrop={this.handleFileDrop}>
+          Drag files to upload
+        </Dropzone>
+      );
+    } else {
+      uploadDiv = <div>Uploading {this.state.upload.length} files...</div>;
+    }
+
     return (
       <div>
         <Location dir={this.state.dir} onClick={this.handleLocationClick} />
@@ -172,6 +227,8 @@ class App extends React.Component {
             {files}
           </tbody>
         </Table>
+        {uploadDiv}
+        {this.state.uploadAlert}
       </div>
     );
   }

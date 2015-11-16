@@ -2,6 +2,7 @@ import koa from 'koa';
 import koaAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
 import sendfile from 'koa-sendfile';
+import parse from 'co-busboy';
 import ejs from 'koa-ejs';
 import path from 'path';
 import fs from 'fs';
@@ -25,6 +26,16 @@ function promisify(func) {
       });
     });
   };
+}
+
+
+function pipeStream(readStream, writeStream) {
+  return new Promise(function(resolve, reject) {
+    readStream.on('error', reject);
+    writeStream.on('error', reject);
+    writeStream.on('finish', resolve);
+    readStream.pipe(writeStream);
+  });
 }
 
 let readdir = promisify(fs.readdir);
@@ -107,6 +118,30 @@ app.use(function*() {
     yield* sendfile.call(this, filepath);
     if (!this.status) {
       this.throw(404);
+    }
+    return;
+  }
+
+  result = /^\/api\/upload\/?(.*)/.exec(this.url);
+  if (result) {
+    try {
+      let dir = decodeURIComponent(result[1]);
+      if (dir.indexOf('..') != -1) {
+        this.body = 'invalid dir';
+        return;
+      }
+      dir = path.resolve('/', dir);
+
+      let parts = parse(this);
+      let part = yield parts;
+      while (part) {
+        let filename = path.resolve(dir, part.filename);
+        yield pipeStream(part, fs.createWriteStream(filename));
+        part = yield parts;
+      }
+      this.status = 200;
+    } catch (err) {
+      this.status = 500;
     }
     return;
   }
