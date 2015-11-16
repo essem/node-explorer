@@ -85,7 +85,13 @@ ejs(app, {
 });
 
 app.use(function*() {
-  let result = /^\/api\/dir\/?(.*)/.exec(this.url);
+  let result = /^\/api\/bookmarks/.exec(this.url);
+  if (result) {
+    this.body = JSON.stringify(config.bookmarks);
+    return;
+  }
+
+  result = /^\/api\/dir\/?(.*)/.exec(this.url);
   if (result) {
     let dir = decodeURIComponent(result[1]);
     if (dir.indexOf('..') != -1) {

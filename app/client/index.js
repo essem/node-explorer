@@ -3,7 +3,7 @@ require("./style.css");
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Alert, Button, Table, Glyphicon } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
 
@@ -24,7 +24,17 @@ function fileSizeIEC(a, b, c, d, e) {
 class Location extends React.Component {
   constructor() {
     super();
+    this.handleBookmarkClick = this.handleBookmarkClick.bind(this);
+    this.handleRootClick = this.handleRootClick.bind(this);
     this.handleClick = this.handleClick.bind(this);
+  }
+
+  handleBookmarkClick(e) {
+    this.props.onChangeBookmark(e.target.dataset.index);
+  }
+
+  handleRootClick() {
+    this.props.onClick(0);
   }
 
   handleClick(e) {
@@ -32,19 +42,24 @@ class Location extends React.Component {
   }
 
   render() {
-    let parts = this.props.dir.slice();
-    parts.unshift('Home');
-    parts = parts.map((part, index) => {
-      if (index < parts.length - 1) {
-        return <a onClick={this.handleClick} data-index={index}>{part}</a>;
-      } else {
-        return part;
-      }
-    });
     return (
-      <h3>
-        {intersperse(parts, <Glyphicon glyph="menu-right" />)}
-      </h3>
+      <ButtonToolbar>
+        <SplitButton
+          bsStyle="primary"
+          title={this.props.bookmarks[this.props.curBookmarkIndex].name}
+          onClick={this.handleRootClick}
+        >
+          {this.props.bookmarks.map((bookmark, index) => {
+            return <MenuItem onClick={this.handleBookmarkClick} data-index={index}>{bookmark.name}</MenuItem>;
+          })}
+        </SplitButton>
+
+        <ButtonGroup>
+          {this.props.dir.map((name, index) => {
+            return <Button onClick={this.handleClick} data-index={index + 1}>{name}</Button>;
+          })}
+        </ButtonGroup>
+      </ButtonToolbar>
     );
   }
 }
@@ -98,21 +113,34 @@ class File extends React.Component {
 class App extends React.Component {
   constructor() {
     super();
-    this.state = { dir: [], files: [], upload: [], uploadAlert: '' };
+    this.state = {
+      bookmarks: [],
+      curBookmarkIndex: 0,
+      dir: [],
+      files: [],
+      upload: [],
+      uploadAlert: ''
+    };
+    this.handleChangeBookmark = this.handleChangeBookmark.bind(this);
     this.handleLocationClick = this.handleLocationClick.bind(this);
     this.handleDirClick = this.handleDirClick.bind(this);
     this.handleFileDrop = this.handleFileDrop.bind(this);
   }
 
   componentDidMount() {
-    this.queryFiles(this.state.dir);
+    let that = this;
+    request.get('/api/bookmarks').end(function(err, res) {
+      that.setState({ bookmarks: JSON.parse(res.text) }, function() {
+        that.queryFiles(that.state.curBookmarkIndex, that.state.dir);
+      });
+    });
   }
 
   makeDirStr(dir) {
     return '/' + dir.join('/');
   }
 
-  queryFiles(dir) {
+  queryFiles(bookmarkIndex, dir) {
     let xhttp = new XMLHttpRequest();
     let that = this;
     xhttp.onreadystatechange = function() {
@@ -131,21 +159,26 @@ class App extends React.Component {
           file.size = fileSizeIEC(file.size);
           file.mtime = new Date(file.mtime).toLocaleString();
         });
-        that.setState({ dir: dir, files: files });
+        that.setState({ curBookmarkIndex: bookmarkIndex, dir: dir, files: files });
       }
     };
-    xhttp.open("GET", "/api/dir" + this.makeDirStr(dir), true);
+    let url = "/api/dir" + this.state.bookmarks[bookmarkIndex].dir + this.makeDirStr(dir);
+    xhttp.open("GET", url, true);
     xhttp.send();
   }
 
+  handleChangeBookmark(index) {
+    this.queryFiles(index, []);
+  }
+
   handleLocationClick(index) {
-    this.queryFiles(this.state.dir.slice(0, index));
+    this.queryFiles(this.state.curBookmarkIndex, this.state.dir.slice(0, index));
   }
 
   handleDirClick(name) {
     let newDir = this.state.dir.slice(0);
     newDir.push(name);
-    this.queryFiles(newDir);
+    this.queryFiles(this.state.curBookmarkIndex, newDir);
   }
 
   handleFileDrop(files) {
@@ -164,13 +197,17 @@ class App extends React.Component {
       if (err) {
         this.setState({ upload: [], uploadAlert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
       } else {
-        this.queryFiles(this.state.dir);
+        this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
         this.setState({ upload: [], uploadAlert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
       }
     });
   }
 
   render() {
+    if (this.state.bookmarks.length == 0) {
+      return <div></div>;
+    }
+
     let files = this.state.files.map(file => {
       return (
         <tr>
@@ -183,38 +220,48 @@ class App extends React.Component {
       );
     });
 
+    let dropzoneStyle = {
+      width: '800px',
+      height: '50px',
+      lineHeight: '50px',
+      margin: '15px 0px',
+      textAlign: 'center',
+      backgroundColor: '#EEE',
+      borderRadius: '5px',
+      border: '2px dashed #C7C7C7'
+    };
+    let dropzoneActiveStyle = {
+      width: '800px',
+      height: '50px',
+      lineHeight: '50px',
+      margin: '15px 0px',
+      textAlign: 'center',
+      backgroundColor: '#AAA',
+      borderRadius: '5px',
+      border: '2px dashed black'
+    };
     let uploadDiv = '';
     if (this.state.upload.length == 0) {
-      let dropzoneStyle = {
-        width: '800px',
-        height: '50px',
-        lineHeight: '50px',
-        textAlign: 'center',
-        backgroundColor: '#EEE',
-        borderRadius: '5px',
-        border: '2px dashed #C7C7C7'
-      };
-      let dropzoneActiveStyle = {
-        width: '800px',
-        height: '50px',
-        lineHeight: '50px',
-        textAlign: 'center',
-        backgroundColor: '#AAA',
-        borderRadius: '5px',
-        border: '2px dashed black'
-      };
       uploadDiv = (
         <Dropzone style={dropzoneStyle} activeStyle={dropzoneActiveStyle} onDrop={this.handleFileDrop}>
           Drag files to upload
         </Dropzone>
       );
     } else {
-      uploadDiv = <div>Uploading {this.state.upload.length} files...</div>;
+      uploadDiv = <div style={dropzoneStyle}>Uploading {this.state.upload.length} files...</div>;
     }
 
     return (
       <div>
-        <Location dir={this.state.dir} onClick={this.handleLocationClick} />
+        <Location
+          bookmarks={this.state.bookmarks}
+          curBookmarkIndex={this.state.curBookmarkIndex}
+          dir={this.state.dir}
+          onChangeBookmark={this.handleChangeBookmark}
+          onClick={this.handleLocationClick}
+        />
+        {uploadDiv}
+        {this.state.uploadAlert}
         <Table striped hover className="explorer">
           <thead>
             <tr>
@@ -227,8 +274,6 @@ class App extends React.Component {
             {files}
           </tbody>
         </Table>
-        {uploadDiv}
-        {this.state.uploadAlert}
       </div>
     );
   }

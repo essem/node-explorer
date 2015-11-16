@@ -3,5 +3,9 @@
   "auth": {
     "name": "tj",
     "pass": "tobi"
-  }
+  },
+  "bookmarks": [
+    { "name": "Root", "dir": "/" },
+    { "name": "Home", "dir": "/home" }
+  ]
 }
