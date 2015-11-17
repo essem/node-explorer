@@ -6,20 +6,7 @@ import ReactDOM from 'react-dom';
 import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
-
-function intersperse(arr, sep) {
-  if (arr.length === 0) {
-    return [];
-  }
-
-  return arr.slice(1).reduce(function(xs, x) {
-    return xs.concat([sep, x]);
-  }, [arr[0]]);
-}
-
-function fileSizeIEC(a, b, c, d, e) {
-  return (b=Math,c=b.log,d=1024,e=c(a)/c(d)|0,a/b.pow(d,e)).toFixed(2)+' '+(e?'KMGTPEZY'[--e]+'iB':'Bytes');
-}
+import util from '../common/util';
 
 class Location extends React.Component {
   constructor() {
@@ -95,7 +82,7 @@ class File extends React.Component {
     } else if (this.state.fileClicked) {
       return (
         <div className="file" onMouseLeave={this.handleFileLeave}>
-          <form method="get" action={'/api/download/' + this.props.dir.join('/') + '/' + this.props.name}>
+          <form method="get" action={'/api/download' + this.props.fullpath + '/' + this.props.name}>
             <Button type="submit" bsStyle="primary" bsSize="xsmall">Download</Button>
           </form>
         </div>
@@ -136,8 +123,12 @@ class App extends React.Component {
     });
   }
 
-  makeDirStr(dir) {
-    return '/' + dir.join('/');
+  makeFullPath(bookmarkIndex, dir) {
+    return this.state.bookmarks[bookmarkIndex].dir + '/' + dir.join('/');
+  }
+
+  makeCurFullPath() {
+    return this.makeFullPath(this.state.curBookmarkIndex, this.state.dir);
   }
 
   queryFiles(bookmarkIndex, dir) {
@@ -156,13 +147,13 @@ class App extends React.Component {
           }
         });
         files.forEach(function(file) {
-          file.size = fileSizeIEC(file.size);
+          file.size = util.fileSizeIEC(file.size);
           file.mtime = new Date(file.mtime).toLocaleString();
         });
         that.setState({ curBookmarkIndex: bookmarkIndex, dir: dir, files: files });
       }
     };
-    let url = "/api/dir" + this.state.bookmarks[bookmarkIndex].dir + this.makeDirStr(dir);
+    let url = "/api/dir" + this.makeFullPath(bookmarkIndex, dir);
     xhttp.open("GET", url, true);
     xhttp.send();
   }
@@ -184,7 +175,7 @@ class App extends React.Component {
   handleFileDrop(files) {
     this.setState({ upload: files });
 
-    let req = request.post("/api/upload" + this.makeDirStr(this.state.dir));
+    let req = request.post("/api/upload" + this.makeCurFullPath());
     files.forEach(file => {
       req.attach(file.name, file);
     });
@@ -208,11 +199,12 @@ class App extends React.Component {
       return <div></div>;
     }
 
+    let fullpath = this.makeCurFullPath();
     let files = this.state.files.map(file => {
       return (
         <tr>
           <td>
-            <File key={file.name} dir={this.state.dir} {...file} onDirClick={this.handleDirClick} />
+            <File key={file.name} fullpath={fullpath} {...file} onDirClick={this.handleDirClick} />
           </td>
           <td>{file.size}</td>
           <td>{file.mtime}</td>

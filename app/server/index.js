@@ -6,6 +6,7 @@ import parse from 'co-busboy';
 import ejs from 'koa-ejs';
 import path from 'path';
 import fs from 'fs';
+import url from 'url';
 
 function promisify(func) {
   return function() {
@@ -85,13 +86,15 @@ ejs(app, {
 });
 
 app.use(function*() {
-  let result = /^\/api\/bookmarks/.exec(this.url);
+  let pathname = url.parse(this.url).pathname;
+
+  let result = /^\/api\/bookmarks/.exec(pathname);
   if (result) {
     this.body = JSON.stringify(config.bookmarks);
     return;
   }
 
-  result = /^\/api\/dir\/?(.*)/.exec(this.url);
+  result = /^\/api\/dir\/?(.*)/.exec(pathname);
   if (result) {
     let dir = decodeURIComponent(result[1]);
     if (dir.indexOf('..') != -1) {
@@ -113,7 +116,7 @@ app.use(function*() {
     return;
   }
 
-  result = /^\/api\/download\/?(.*)/.exec(this.url);
+  result = /^\/api\/download\/?(.*)/.exec(pathname);
   if (result) {
     let filepath = decodeURIComponent(result[1]);
     if (filepath.indexOf('..') != -1) {
@@ -128,7 +131,7 @@ app.use(function*() {
     return;
   }
 
-  result = /^\/api\/upload\/?(.*)/.exec(this.url);
+  result = /^\/api\/upload\/?(.*)/.exec(pathname);
   if (result) {
     try {
       let dir = decodeURIComponent(result[1]);
