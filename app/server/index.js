@@ -150,6 +150,7 @@ app.use(function*() {
       }
       this.status = 200;
     } catch (err) {
+      console.log(err);
       this.status = 500;
     }
     return;

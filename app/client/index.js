@@ -177,7 +177,7 @@ class App extends React.Component {
 
     let req = request.post("/api/upload" + this.makeCurFullPath());
     files.forEach(file => {
-      req.attach(file.name, file);
+      req.attach(file.name, file, file.name);
     });
     req.end((err) => {
       let alertStyle = {
