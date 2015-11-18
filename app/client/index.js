@@ -6,6 +6,7 @@ import ReactDOM from 'react-dom';
 import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
+import moment from 'moment';
 import util from '../common/util';
 
 class Location extends React.Component {
@@ -148,7 +149,7 @@ class App extends React.Component {
         });
         files.forEach(function(file) {
           file.size = util.fileSizeIEC(file.size);
-          file.mtime = new Date(file.mtime).toLocaleString();
+          file.mtime = moment(file.mtime).format('YYYY-MM-DD HH:mm:ss');
         });
         that.setState({ curBookmarkIndex: bookmarkIndex, dir: dir, files: files });
       }
@@ -199,6 +200,15 @@ class App extends React.Component {
       return <div></div>;
     }
 
+    let sizeColumnStyle = {
+      width: '130px',
+      textAlign: 'right'
+    };
+    let timeColumnStyle = {
+      width: '170px',
+      textAlign: 'right'
+    };
+
     let fullpath = this.makeCurFullPath();
     let files = this.state.files.map(file => {
       return (
@@ -206,8 +216,8 @@ class App extends React.Component {
           <td>
             <File key={file.name} fullpath={fullpath} {...file} onDirClick={this.handleDirClick} />
           </td>
-          <td>{file.size}</td>
-          <td>{file.mtime}</td>
+          <td style={sizeColumnStyle}>{file.size}</td>
+          <td style={timeColumnStyle}>{file.mtime}</td>
         </tr>
       );
     });
@@ -258,8 +268,8 @@ class App extends React.Component {
           <thead>
             <tr>
               <th>Name</th>
-              <th width="130px"> Size</th>
-              <th width="200px">Modified</th>
+              <th style={sizeColumnStyle}>Size</th>
+              <th style={timeColumnStyle}>Modified</th>
             </tr>
           </thead>
           <tbody>
