@@ -3,7 +3,7 @@ require("./style.css");
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem, Modal } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
 import moment from 'moment';
@@ -55,10 +55,13 @@ class Location extends React.Component {
 class File extends React.Component {
   constructor() {
     super();
-    this.state = { fileClicked: false };
+    this.state = { fileClicked: false, showDeleteConfirm: false };
     this.handleDirClick = this.handleDirClick.bind(this);
     this.handleFileEnter = this.handleFileEnter.bind(this);
     this.handleFileLeave = this.handleFileLeave.bind(this);
+    this.handleModalOpen = this.handleModalOpen.bind(this);
+    this.handleModalClose = this.handleModalClose.bind(this);
+    this.handleModalDelete = this.handleModalDelete.bind(this);
   }
 
   handleDirClick() {
@@ -73,28 +76,64 @@ class File extends React.Component {
     this.setState({ fileClicked: false });
   }
 
+  handleModalOpen() {
+    this.setState({ showDeleteConfirm: true });
+  }
+
+  handleModalClose() {
+    this.setState({ showDeleteConfirm: false });
+  }
+
+  handleModalDelete() {
+    this.props.onDeleteClick(this.props.name);
+  }
+
   render() {
+    let modal = (
+      <Modal show={this.state.showDeleteConfirm} onHide={this.handleModalClose}>
+        <Modal.Header>
+          <Modal.Title>Confirm</Modal.Title>
+        </Modal.Header>
+
+        <Modal.Body>
+          Do you want to delete the file '{this.props.name}'?
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button onClick={this.handleModalClose}>Close</Button>
+          <Button onClick={this.handleModalDelete} bsStyle="danger">Delete</Button>
+        </Modal.Footer>
+      </Modal>
+    );
+
+    let content = '';
     if (this.props.isDirectory) {
-      return (
+      content = (
         <div className="file" onClick={this.handleDirClick}>
           <Glyphicon glyph="folder-close" /> {this.props.name}
         </div>
       );
     } else if (this.state.fileClicked) {
-      return (
+      let formStyle = {
+        display: 'inline',
+        marginRight: '10px'
+      };
+      content = (
         <div className="file" onMouseLeave={this.handleFileLeave}>
-          <form method="get" action={'/api/download' + this.props.fullpath + '/' + this.props.name}>
+          <form method="get" style={formStyle} action={'/api/download' + this.props.fullpath + '/' + this.props.name}>
             <Button type="submit" bsStyle="primary" bsSize="xsmall">Download</Button>
           </form>
+          <Button bsStyle="danger" bsSize="xsmall" onClick={this.handleModalOpen}>Delete</Button>
         </div>
       );
     } else {
-      return (
+      content = (
         <div className="file" onMouseEnter={this.handleFileEnter}>
           {this.props.name}
         </div>
       );
     }
+    return <div>{content}{modal}</div>;
   }
 }
 
@@ -112,6 +151,7 @@ class App extends React.Component {
     this.handleChangeBookmark = this.handleChangeBookmark.bind(this);
     this.handleLocationClick = this.handleLocationClick.bind(this);
     this.handleDirClick = this.handleDirClick.bind(this);
+    this.handleDeleteClick = this.handleDeleteClick.bind(this);
     this.handleFileDrop = this.handleFileDrop.bind(this);
   }
 
@@ -173,6 +213,23 @@ class App extends React.Component {
     this.queryFiles(this.state.curBookmarkIndex, newDir);
   }
 
+  handleDeleteClick(name) {
+    let req = request.post("/api/delete" + this.makeCurFullPath() + '/' + name);
+    req.end((err) => {
+      let alertStyle = {
+        width: '800px',
+        marginTop: '10px',
+        padding: '5px 10px'
+      };
+      if (err) {
+        this.setState({ uploadAlert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
+      } else {
+        this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
+        this.setState({ uploadAlert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+      }
+    });
+  }
+
   handleFileDrop(files) {
     this.setState({ upload: files });
 
@@ -214,7 +271,13 @@ class App extends React.Component {
       return (
         <tr>
           <td>
-            <File key={file.name} fullpath={fullpath} {...file} onDirClick={this.handleDirClick} />
+            <File
+              key={file.name}
+              fullpath={fullpath}
+              {...file}
+              onDirClick={this.handleDirClick}
+              onDeleteClick={this.handleDeleteClick}
+            />
           </td>
           <td style={sizeColumnStyle}>{file.size}</td>
           <td style={timeColumnStyle}>{file.mtime}</td>

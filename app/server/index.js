@@ -40,6 +40,7 @@ function pipeStream(readStream, writeStream) {
 }
 
 let readdir = promisify(fs.readdir);
+let unlink = promisify(fs.unlink);
 
 var config = null;
 try {
@@ -148,6 +149,24 @@ app.use(function*() {
         yield pipeStream(part, fs.createWriteStream(filename));
         part = yield parts;
       }
+      this.status = 200;
+    } catch (err) {
+      console.log(err);
+      this.status = 500;
+    }
+    return;
+  }
+
+  result = /^\/api\/delete\/?(.*)/.exec(pathname);
+  if (result) {
+    let filepath = decodeURIComponent(result[1]);
+    if (filepath.indexOf('..') != -1) {
+      this.body = 'invalid dir';
+      return;
+    }
+    filepath = path.resolve('/', filepath);
+    try {
+      yield* unlink(filepath);
       this.status = 200;
     } catch (err) {
       console.log(err);
