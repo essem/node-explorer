@@ -312,7 +312,7 @@
 
 	      var req = _superagent2["default"].post("/api/upload" + this.makeCurFullPath());
 	      files.forEach(function (file) {
-	        req.attach(file.name, file);
+	        req.attach(file.name, file, file.name);
 	      });
 	      req.end(function (err) {
 	        var alertStyle = {
