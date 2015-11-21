@@ -86,6 +86,7 @@ class File extends React.Component {
   }
 
   handleModalDelete() {
+    this.setState({ showDeleteConfirm: false });
     this.props.onDeleteClick(this.props.name);
   }
 
@@ -161,6 +162,10 @@ class App extends React.Component {
     window.addEventListener('popstate', this.handlePopState);
     let that = this;
     request.get('/api/bookmarks').end(function(err, res) {
+      if (err) {
+        console.log(err);
+        return;
+      }
       that.setState({ bookmarks: JSON.parse(res.text) }, function() {
         this.updateByUrl(location.pathname);
       });
@@ -180,9 +185,9 @@ class App extends React.Component {
   }
 
   updateByUrl(url) {
-    let parts = url.split('/');
+    let parts = decodeURIComponent(url).split('/');
     util.removeAll(parts, "");
-    let bookmarkIndex = parseInt(parts[0]);
+    let bookmarkIndex = parseInt(parts[0]) || 0;
     let dir = parts.slice(1);
     this.queryFiles(bookmarkIndex, dir, false);
   }

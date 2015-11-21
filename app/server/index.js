@@ -1,46 +1,10 @@
 import koa from 'koa';
 import koaAuth from 'koa-basic-auth';
 import koaStatic from 'koa-static';
-import sendfile from 'koa-sendfile';
-import parse from 'co-busboy';
 import ejs from 'koa-ejs';
 import path from 'path';
-import fs from 'fs';
 import url from 'url';
-
-function promisify(func) {
-  return function() {
-    var params = arguments;
-    return new Promise(function(resolve, reject) {
-      func(...params, function(err, ...results) {
-        if (err) {
-          reject(err);
-        } else {
-          if (results.length == 0) {
-            resolve();
-          } else if (results.length == 1) {
-            resolve(results[0]);
-          } else {
-            resolve(results);
-          }
-        }
-      });
-    });
-  };
-}
-
-
-function pipeStream(readStream, writeStream) {
-  return new Promise(function(resolve, reject) {
-    readStream.on('error', reject);
-    writeStream.on('error', reject);
-    writeStream.on('finish', resolve);
-    readStream.pipe(writeStream);
-  });
-}
-
-let readdir = promisify(fs.readdir);
-let unlink = promisify(fs.unlink);
+import api from './api';
 
 var config = null;
 try {
@@ -61,7 +25,7 @@ app.use(function*(next){
   console.log('%s %s - %s ms', this.method, this.url, ms);
 });
 
-app.use(function *(next){
+app.use(function*(next){
   try {
     yield next;
   } catch (err) {
@@ -89,89 +53,9 @@ ejs(app, {
 app.use(function*() {
   let pathname = url.parse(this.url).pathname;
 
-  let result = /^\/api\/bookmarks/.exec(pathname);
+  let result = /^\/api\/(.*)/.exec(pathname);
   if (result) {
-    this.body = JSON.stringify(config.bookmarks);
-    return;
-  }
-
-  result = /^\/api\/dir\/?(.*)/.exec(pathname);
-  if (result) {
-    let dir = decodeURIComponent(result[1]);
-    if (dir.indexOf('..') != -1) {
-      this.body = 'invalid dir';
-      return;
-    }
-    dir = path.resolve('/', dir);
-    let files = yield readdir(dir);
-    files = files.map(function(file) {
-      let stats = fs.lstatSync(path.resolve(dir, file));
-      return {
-        name: file,
-        isDirectory: stats.isDirectory(),
-        size: stats.size,
-        mtime: stats.mtime.getTime()
-      };
-    });
-    this.body = files;
-    return;
-  }
-
-  result = /^\/api\/download\/?(.*)/.exec(pathname);
-  if (result) {
-    let filepath = decodeURIComponent(result[1]);
-    if (filepath.indexOf('..') != -1) {
-      this.body = 'invalid dir';
-      return;
-    }
-    filepath = path.resolve('/', filepath);
-    yield* sendfile.call(this, filepath);
-    if (!this.status) {
-      this.throw(404);
-    }
-    return;
-  }
-
-  result = /^\/api\/upload\/?(.*)/.exec(pathname);
-  if (result) {
-    try {
-      let dir = decodeURIComponent(result[1]);
-      if (dir.indexOf('..') != -1) {
-        this.body = 'invalid dir';
-        return;
-      }
-      dir = path.resolve('/', dir);
-
-      let parts = parse(this);
-      let part = yield parts;
-      while (part) {
-        let filename = path.resolve(dir, part.filename);
-        yield pipeStream(part, fs.createWriteStream(filename));
-        part = yield parts;
-      }
-      this.status = 200;
-    } catch (err) {
-      console.log(err);
-      this.status = 500;
-    }
-    return;
-  }
-
-  result = /^\/api\/delete\/?(.*)/.exec(pathname);
-  if (result) {
-    let filepath = decodeURIComponent(result[1]);
-    if (filepath.indexOf('..') != -1) {
-      this.body = 'invalid dir';
-      return;
-    }
-    filepath = path.resolve('/', filepath);
-    try {
-      yield* unlink(filepath);
-      this.status = 200;
-    } catch (err) {
-      console.log(err);
-      this.status = 500;
-    }
+    yield api.call(this, result[1]);
     return;
   }
 
