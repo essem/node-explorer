@@ -33,18 +33,19 @@ class Location extends React.Component {
     return (
       <ButtonToolbar>
         <SplitButton
+          id="location"
           bsStyle="primary"
           title={this.props.bookmarks[this.props.curBookmarkIndex].name}
           onClick={this.handleRootClick}
         >
           {this.props.bookmarks.map((bookmark, index) => {
-            return <MenuItem onClick={this.handleBookmarkClick} data-index={index}>{bookmark.name}</MenuItem>;
+            return <MenuItem key={index} onClick={this.handleBookmarkClick} data-index={index}>{bookmark.name}</MenuItem>;
           })}
         </SplitButton>
 
         <ButtonGroup>
           {this.props.dir.map((name, index) => {
-            return <Button onClick={this.handleClick} data-index={index + 1}>{name}</Button>;
+            return <Button key={index} onClick={this.handleClick} data-index={index + 1}>{name}</Button>;
           })}
         </ButtonGroup>
       </ButtonToolbar>
@@ -148,6 +149,7 @@ class App extends React.Component {
       upload: [],
       uploadAlert: ''
     };
+    this.handlePopState = this.handlePopState.bind(this);
     this.handleChangeBookmark = this.handleChangeBookmark.bind(this);
     this.handleLocationClick = this.handleLocationClick.bind(this);
     this.handleDirClick = this.handleDirClick.bind(this);
@@ -156,12 +158,17 @@ class App extends React.Component {
   }
 
   componentDidMount() {
+    window.addEventListener('popstate', this.handlePopState);
     let that = this;
     request.get('/api/bookmarks').end(function(err, res) {
       that.setState({ bookmarks: JSON.parse(res.text) }, function() {
-        that.queryFiles(that.state.curBookmarkIndex, that.state.dir);
+        this.updateByUrl(location.pathname);
       });
     });
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('popstate', this.handlePopState);
   }
 
   makeFullPath(bookmarkIndex, dir) {
@@ -172,7 +179,15 @@ class App extends React.Component {
     return this.makeFullPath(this.state.curBookmarkIndex, this.state.dir);
   }
 
-  queryFiles(bookmarkIndex, dir) {
+  updateByUrl(url) {
+    let parts = url.split('/');
+    util.removeAll(parts, "");
+    let bookmarkIndex = parseInt(parts[0]);
+    let dir = parts.slice(1);
+    this.queryFiles(bookmarkIndex, dir, false);
+  }
+
+  queryFiles(bookmarkIndex, dir, addHistory = true) {
     let xhttp = new XMLHttpRequest();
     let that = this;
     xhttp.onreadystatechange = function() {
@@ -192,11 +207,18 @@ class App extends React.Component {
           file.mtime = moment(file.mtime).format('YYYY-MM-DD HH:mm:ss');
         });
         that.setState({ curBookmarkIndex: bookmarkIndex, dir: dir, files: files });
+        if (addHistory) {
+          history.pushState(null, null, `/${bookmarkIndex}/${dir.join('/')}`);
+        }
       }
     };
     let url = "/api/dir" + this.makeFullPath(bookmarkIndex, dir);
     xhttp.open("GET", url, true);
     xhttp.send();
+  }
+
+  handlePopState() {
+    this.updateByUrl(location.pathname);
   }
 
   handleChangeBookmark(index) {
@@ -269,10 +291,9 @@ class App extends React.Component {
     let fullpath = this.makeCurFullPath();
     let files = this.state.files.map(file => {
       return (
-        <tr>
+        <tr key={file.name}>
           <td>
             <File
-              key={file.name}
               fullpath={fullpath}
               {...file}
               onDirClick={this.handleDirClick}
