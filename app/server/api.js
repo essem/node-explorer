@@ -66,6 +66,7 @@ let funcs = {
     }
 
     filepath = path.resolve('/', filepath);
+    koa.response.attachment();
     yield* sendfile.call(koa, filepath);
     if (!koa.status) {
       koa.throw(404);
