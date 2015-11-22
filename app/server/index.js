@@ -51,7 +51,7 @@ ejs(app, {
 });
 
 app.use(function*() {
-  let pathname = url.parse(this.url).pathname;
+  let pathname = decodeURIComponent(url.parse(this.url).pathname);
 
   let result = /^\/api\/(.*)/.exec(pathname);
   if (result) {

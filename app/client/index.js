@@ -35,11 +35,11 @@ class Location extends React.Component {
         <SplitButton
           id="location"
           bsStyle="primary"
-          title={this.props.bookmarks[this.props.curBookmarkIndex].name}
+          title={this.props.bookmarks[this.props.curBookmarkIndex]}
           onClick={this.handleRootClick}
         >
           {this.props.bookmarks.map((bookmark, index) => {
-            return <MenuItem key={index} onClick={this.handleBookmarkClick} data-index={index}>{bookmark.name}</MenuItem>;
+            return <MenuItem key={index} onClick={this.handleBookmarkClick} data-index={index}>{bookmark}</MenuItem>;
           })}
         </SplitButton>
 
@@ -177,7 +177,7 @@ class App extends React.Component {
   }
 
   makeFullPath(bookmarkIndex, dir) {
-    return this.state.bookmarks[bookmarkIndex].dir + '/' + dir.join('/');
+    return `/${bookmarkIndex}/${dir.join('/')}`;
   }
 
   makeCurFullPath() {
