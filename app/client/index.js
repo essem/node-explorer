@@ -3,7 +3,7 @@ require("./style.css");
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import { Alert, Button, ButtonGroup, ButtonToolbar, Table, Glyphicon, SplitButton, MenuItem, Modal } from 'react-bootstrap';
+import { Alert, Button, ButtonGroup, ButtonToolbar, ProgressBar, Table, Glyphicon, SplitButton, MenuItem, Modal } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
 import moment from 'moment';
@@ -139,23 +139,96 @@ class File extends React.Component {
   }
 }
 
+class Upload extends React.Component {
+  constructor() {
+    super();
+    this.state = {
+      upload: [],
+      progress: 0
+    };
+    this.handleFileDrop = this.handleFileDrop.bind(this);
+  }
+
+  handleFileDrop(files) {
+    this.setState({ upload: files });
+
+    let curFullPath = `/${this.props.curBookmarkIndex}/${this.props.dir.join('/')}`;
+    let req = request.post("/api/upload" + curFullPath);
+    files.forEach(file => {
+      req.attach(file.name, file, file.name);
+    });
+    req.on('progress', e => {
+      this.setState({ progress: e.percent.toFixed(0) });
+    }).end((err) => {
+      this.props.onUploadEnded(err);
+      this.setState({ upload: [] });
+    });
+  }
+
+  render() {
+    let dropzoneStyle = {
+      width: '800px',
+      height: '50px',
+      lineHeight: '50px',
+      margin: '15px 0px',
+      textAlign: 'center',
+      backgroundColor: '#EEE',
+      borderRadius: '5px',
+      border: '2px dashed #C7C7C7'
+    };
+
+    let dropzoneActiveStyle = JSON.parse(JSON.stringify(dropzoneStyle));
+    dropzoneActiveStyle.backgroundColor = '#AAA';
+    dropzoneActiveStyle.border = '2px dashed black';
+
+    let uploadStyle = {
+      position: 'relative',
+      width: '800px',
+      height: '50px',
+      margin: '15px 0px'
+    };
+
+    let progressStyle = {
+      position: 'absolute',
+      bottom: '0',
+      left: '0',
+      right: '0',
+      marginBottom: '0'
+    };
+
+    if (this.state.upload.length == 0) {
+      return (
+        <Dropzone style={dropzoneStyle} activeStyle={dropzoneActiveStyle} onDrop={this.handleFileDrop}>
+          Drag files to upload
+        </Dropzone>
+      );
+    } else {
+      return (
+        <div style={uploadStyle}>
+          <div>Uploading {this.state.upload.length} files...</div>
+          <ProgressBar style={progressStyle} active now={this.state.progress} label="%(percent)s%" />
+        </div>
+      );
+    }
+  }
+}
+
 class App extends React.Component {
   constructor() {
     super();
     this.state = {
       bookmarks: [],
       curBookmarkIndex: 0,
+      alert: '',
       dir: [],
-      files: [],
-      upload: [],
-      uploadAlert: ''
+      files: []
     };
     this.handlePopState = this.handlePopState.bind(this);
     this.handleChangeBookmark = this.handleChangeBookmark.bind(this);
     this.handleLocationClick = this.handleLocationClick.bind(this);
     this.handleDirClick = this.handleDirClick.bind(this);
     this.handleDeleteClick = this.handleDeleteClick.bind(this);
-    this.handleFileDrop = this.handleFileDrop.bind(this);
+    this.handleUploadEnded = this.handleUploadEnded.bind(this);
   }
 
   componentDidMount() {
@@ -249,34 +322,26 @@ class App extends React.Component {
         padding: '5px 10px'
       };
       if (err) {
-        this.setState({ uploadAlert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
+        this.setState({ alert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
       } else {
         this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
-        this.setState({ uploadAlert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+        this.setState({ alert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
       }
     });
   }
 
-  handleFileDrop(files) {
-    this.setState({ upload: files });
-
-    let req = request.post("/api/upload" + this.makeCurFullPath());
-    files.forEach(file => {
-      req.attach(file.name, file, file.name);
-    });
-    req.end((err) => {
-      let alertStyle = {
-        width: '800px',
-        marginTop: '10px',
-        padding: '5px 10px'
-      };
-      if (err) {
-        this.setState({ upload: [], uploadAlert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
-      } else {
-        this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
-        this.setState({ upload: [], uploadAlert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
-      }
-    });
+  handleUploadEnded(err) {
+    let alertStyle = {
+      width: '800px',
+      marginTop: '10px',
+      padding: '5px 10px'
+    };
+    if (err) {
+      this.setState({ alert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
+    } else {
+      this.setState({ alert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+    }
+    this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
   }
 
   render() {
@@ -311,37 +376,6 @@ class App extends React.Component {
       );
     });
 
-    let dropzoneStyle = {
-      width: '800px',
-      height: '50px',
-      lineHeight: '50px',
-      margin: '15px 0px',
-      textAlign: 'center',
-      backgroundColor: '#EEE',
-      borderRadius: '5px',
-      border: '2px dashed #C7C7C7'
-    };
-    let dropzoneActiveStyle = {
-      width: '800px',
-      height: '50px',
-      lineHeight: '50px',
-      margin: '15px 0px',
-      textAlign: 'center',
-      backgroundColor: '#AAA',
-      borderRadius: '5px',
-      border: '2px dashed black'
-    };
-    let uploadDiv = '';
-    if (this.state.upload.length == 0) {
-      uploadDiv = (
-        <Dropzone style={dropzoneStyle} activeStyle={dropzoneActiveStyle} onDrop={this.handleFileDrop}>
-          Drag files to upload
-        </Dropzone>
-      );
-    } else {
-      uploadDiv = <div style={dropzoneStyle}>Uploading {this.state.upload.length} files...</div>;
-    }
-
     return (
       <div>
         <Location
@@ -351,8 +385,12 @@ class App extends React.Component {
           onChangeBookmark={this.handleChangeBookmark}
           onClick={this.handleLocationClick}
         />
-        {uploadDiv}
-        {this.state.uploadAlert}
+        <Upload
+          curBookmarkIndex={this.state.curBookmarkIndex}
+          dir={this.state.dir}
+          onUploadEnded={this.handleUploadEnded}
+        />
+        {this.state.alert}
         <Table striped hover className="explorer">
           <thead>
             <tr>
