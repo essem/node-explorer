@@ -50,7 +50,7 @@
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+	var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -125,15 +125,16 @@
 	        _react2["default"].createElement(
 	          _reactBootstrap.SplitButton,
 	          {
+	            id: "location",
 	            bsStyle: "primary",
-	            title: this.props.bookmarks[this.props.curBookmarkIndex].name,
+	            title: this.props.bookmarks[this.props.curBookmarkIndex],
 	            onClick: this.handleRootClick
 	          },
 	          this.props.bookmarks.map(function (bookmark, index) {
 	            return _react2["default"].createElement(
 	              _reactBootstrap.MenuItem,
-	              { onClick: _this.handleBookmarkClick, "data-index": index },
-	              bookmark.name
+	              { key: index, onClick: _this.handleBookmarkClick, "data-index": index },
+	              bookmark
 	            );
 	          })
 	        ),
@@ -143,7 +144,7 @@
 	          this.props.dir.map(function (name, index) {
 	            return _react2["default"].createElement(
 	              _reactBootstrap.Button,
-	              { onClick: _this.handleClick, "data-index": index + 1 },
+	              { key: index, onClick: _this.handleClick, "data-index": index + 1 },
 	              name
 	            );
 	          })
@@ -199,6 +200,7 @@
 	  }, {
 	    key: "handleModalDelete",
 	    value: function handleModalDelete() {
+	      this.setState({ showDeleteConfirm: false });
 	      this.props.onDeleteClick(this.props.name);
 	    }
 	  }, {
@@ -290,8 +292,100 @@
 	  return File;
 	})(_react2["default"].Component);
 
-	var App = (function (_React$Component3) {
-	  _inherits(App, _React$Component3);
+	var Upload = (function (_React$Component3) {
+	  _inherits(Upload, _React$Component3);
+
+	  function Upload() {
+	    _classCallCheck(this, Upload);
+
+	    _get(Object.getPrototypeOf(Upload.prototype), "constructor", this).call(this);
+	    this.state = {
+	      upload: [],
+	      progress: 0
+	    };
+	    this.handleFileDrop = this.handleFileDrop.bind(this);
+	  }
+
+	  _createClass(Upload, [{
+	    key: "handleFileDrop",
+	    value: function handleFileDrop(files) {
+	      var _this2 = this;
+
+	      this.setState({ upload: files });
+
+	      var curFullPath = "/" + this.props.curBookmarkIndex + "/" + this.props.dir.join('/');
+	      var req = _superagent2["default"].post("/api/upload" + curFullPath);
+	      files.forEach(function (file) {
+	        req.attach(file.name, file, file.name);
+	      });
+	      req.on('progress', function (e) {
+	        _this2.setState({ progress: e.percent.toFixed(0) });
+	      }).end(function (err) {
+	        _this2.props.onUploadEnded(err);
+	        _this2.setState({ upload: [] });
+	      });
+	    }
+	  }, {
+	    key: "render",
+	    value: function render() {
+	      var dropzoneStyle = {
+	        width: '800px',
+	        height: '50px',
+	        lineHeight: '50px',
+	        margin: '15px 0px',
+	        textAlign: 'center',
+	        backgroundColor: '#EEE',
+	        borderRadius: '5px',
+	        border: '2px dashed #C7C7C7'
+	      };
+
+	      var dropzoneActiveStyle = JSON.parse(JSON.stringify(dropzoneStyle));
+	      dropzoneActiveStyle.backgroundColor = '#AAA';
+	      dropzoneActiveStyle.border = '2px dashed black';
+
+	      var uploadStyle = {
+	        position: 'relative',
+	        width: '800px',
+	        height: '50px',
+	        margin: '15px 0px'
+	      };
+
+	      var progressStyle = {
+	        position: 'absolute',
+	        bottom: '0',
+	        left: '0',
+	        right: '0',
+	        marginBottom: '0'
+	      };
+
+	      if (this.state.upload.length == 0) {
+	        return _react2["default"].createElement(
+	          _reactDropzone2["default"],
+	          { style: dropzoneStyle, activeStyle: dropzoneActiveStyle, onDrop: this.handleFileDrop },
+	          "Drag files to upload"
+	        );
+	      } else {
+	        return _react2["default"].createElement(
+	          "div",
+	          { style: uploadStyle },
+	          _react2["default"].createElement(
+	            "div",
+	            null,
+	            "Uploading ",
+	            this.state.upload.length,
+	            " files..."
+	          ),
+	          _react2["default"].createElement(_reactBootstrap.ProgressBar, { style: progressStyle, active: true, now: this.state.progress, label: "%(percent)s%" })
+	        );
+	      }
+	    }
+	  }]);
+
+	  return Upload;
+	})(_react2["default"].Component);
+
+	var App = (function (_React$Component4) {
+	  _inherits(App, _React$Component4);
 
 	  function App() {
 	    _classCallCheck(this, App);
@@ -300,32 +394,42 @@
 	    this.state = {
 	      bookmarks: [],
 	      curBookmarkIndex: 0,
+	      alert: '',
 	      dir: [],
-	      files: [],
-	      upload: [],
-	      uploadAlert: ''
+	      files: []
 	    };
+	    this.handlePopState = this.handlePopState.bind(this);
 	    this.handleChangeBookmark = this.handleChangeBookmark.bind(this);
 	    this.handleLocationClick = this.handleLocationClick.bind(this);
 	    this.handleDirClick = this.handleDirClick.bind(this);
 	    this.handleDeleteClick = this.handleDeleteClick.bind(this);
-	    this.handleFileDrop = this.handleFileDrop.bind(this);
+	    this.handleUploadEnded = this.handleUploadEnded.bind(this);
 	  }
 
 	  _createClass(App, [{
 	    key: "componentDidMount",
 	    value: function componentDidMount() {
+	      window.addEventListener('popstate', this.handlePopState);
 	      var that = this;
 	      _superagent2["default"].get('/api/bookmarks').end(function (err, res) {
+	        if (err) {
+	          console.log(err);
+	          return;
+	        }
 	        that.setState({ bookmarks: JSON.parse(res.text) }, function () {
-	          that.queryFiles(that.state.curBookmarkIndex, that.state.dir);
+	          this.updateByUrl(location.pathname);
 	        });
 	      });
 	    }
 	  }, {
+	    key: "componentWillUnmount",
+	    value: function componentWillUnmount() {
+	      window.removeEventListener('popstate', this.handlePopState);
+	    }
+	  }, {
 	    key: "makeFullPath",
 	    value: function makeFullPath(bookmarkIndex, dir) {
-	      return this.state.bookmarks[bookmarkIndex].dir + '/' + dir.join('/');
+	      return "/" + bookmarkIndex + "/" + dir.join('/');
 	    }
 	  }, {
 	    key: "makeCurFullPath",
@@ -333,8 +437,19 @@
 	      return this.makeFullPath(this.state.curBookmarkIndex, this.state.dir);
 	    }
 	  }, {
+	    key: "updateByUrl",
+	    value: function updateByUrl(url) {
+	      var parts = decodeURIComponent(url).split('/');
+	      _commonUtil2["default"].removeAll(parts, "");
+	      var bookmarkIndex = parseInt(parts[0]) || 0;
+	      var dir = parts.slice(1);
+	      this.queryFiles(bookmarkIndex, dir, false);
+	    }
+	  }, {
 	    key: "queryFiles",
 	    value: function queryFiles(bookmarkIndex, dir) {
+	      var addHistory = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+
 	      var xhttp = new XMLHttpRequest();
 	      var that = this;
 	      xhttp.onreadystatechange = function () {
@@ -354,11 +469,19 @@
 	            file.mtime = (0, _moment2["default"])(file.mtime).format('YYYY-MM-DD HH:mm:ss');
 	          });
 	          that.setState({ curBookmarkIndex: bookmarkIndex, dir: dir, files: files });
+	          if (addHistory) {
+	            history.pushState(null, null, "/" + bookmarkIndex + "/" + dir.join('/'));
+	          }
 	        }
 	      };
 	      var url = "/api/dir" + this.makeFullPath(bookmarkIndex, dir);
 	      xhttp.open("GET", url, true);
 	      xhttp.send();
+	    }
+	  }, {
+	    key: "handlePopState",
+	    value: function handlePopState() {
+	      this.updateByUrl(location.pathname);
 	    }
 	  }, {
 	    key: "handleChangeBookmark",
@@ -380,7 +503,7 @@
 	  }, {
 	    key: "handleDeleteClick",
 	    value: function handleDeleteClick(name) {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      var req = _superagent2["default"].post("/api/delete" + this.makeCurFullPath() + '/' + name);
 	      req.end(function (err) {
@@ -390,14 +513,14 @@
 	          padding: '5px 10px'
 	        };
 	        if (err) {
-	          _this2.setState({ uploadAlert: _react2["default"].createElement(
+	          _this3.setState({ alert: _react2["default"].createElement(
 	              _reactBootstrap.Alert,
 	              { bsStyle: "danger", style: alertStyle },
 	              err.toString()
 	            ) });
 	        } else {
-	          _this2.queryFiles(_this2.state.curBookmarkIndex, _this2.state.dir);
-	          _this2.setState({ uploadAlert: _react2["default"].createElement(
+	          _this3.queryFiles(_this3.state.curBookmarkIndex, _this3.state.dir);
+	          _this3.setState({ alert: _react2["default"].createElement(
 	              _reactBootstrap.Alert,
 	              { bsStyle: "success", style: alertStyle },
 	              "Success"
@@ -406,37 +529,27 @@
 	      });
 	    }
 	  }, {
-	    key: "handleFileDrop",
-	    value: function handleFileDrop(files) {
-	      var _this3 = this;
-
-	      this.setState({ upload: files });
-
-	      var req = _superagent2["default"].post("/api/upload" + this.makeCurFullPath());
-	      files.forEach(function (file) {
-	        req.attach(file.name, file, file.name);
-	      });
-	      req.end(function (err) {
-	        var alertStyle = {
-	          width: '800px',
-	          marginTop: '10px',
-	          padding: '5px 10px'
-	        };
-	        if (err) {
-	          _this3.setState({ upload: [], uploadAlert: _react2["default"].createElement(
-	              _reactBootstrap.Alert,
-	              { bsStyle: "danger", style: alertStyle },
-	              err.toString()
-	            ) });
-	        } else {
-	          _this3.queryFiles(_this3.state.curBookmarkIndex, _this3.state.dir);
-	          _this3.setState({ upload: [], uploadAlert: _react2["default"].createElement(
-	              _reactBootstrap.Alert,
-	              { bsStyle: "success", style: alertStyle },
-	              "Success"
-	            ) });
-	        }
-	      });
+	    key: "handleUploadEnded",
+	    value: function handleUploadEnded(err) {
+	      var alertStyle = {
+	        width: '800px',
+	        marginTop: '10px',
+	        padding: '5px 10px'
+	      };
+	      if (err) {
+	        this.setState({ alert: _react2["default"].createElement(
+	            _reactBootstrap.Alert,
+	            { bsStyle: "danger", style: alertStyle },
+	            err.toString()
+	          ) });
+	      } else {
+	        this.setState({ alert: _react2["default"].createElement(
+	            _reactBootstrap.Alert,
+	            { bsStyle: "success", style: alertStyle },
+	            "Success"
+	          ) });
+	      }
+	      this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
 	    }
 	  }, {
 	    key: "render",
@@ -460,12 +573,11 @@
 	      var files = this.state.files.map(function (file) {
 	        return _react2["default"].createElement(
 	          "tr",
-	          null,
+	          { key: file.name },
 	          _react2["default"].createElement(
 	            "td",
 	            null,
 	            _react2["default"].createElement(File, _extends({
-	              key: file.name,
 	              fullpath: fullpath
 	            }, file, {
 	              onDirClick: _this4.handleDirClick,
@@ -485,43 +597,6 @@
 	        );
 	      });
 
-	      var dropzoneStyle = {
-	        width: '800px',
-	        height: '50px',
-	        lineHeight: '50px',
-	        margin: '15px 0px',
-	        textAlign: 'center',
-	        backgroundColor: '#EEE',
-	        borderRadius: '5px',
-	        border: '2px dashed #C7C7C7'
-	      };
-	      var dropzoneActiveStyle = {
-	        width: '800px',
-	        height: '50px',
-	        lineHeight: '50px',
-	        margin: '15px 0px',
-	        textAlign: 'center',
-	        backgroundColor: '#AAA',
-	        borderRadius: '5px',
-	        border: '2px dashed black'
-	      };
-	      var uploadDiv = '';
-	      if (this.state.upload.length == 0) {
-	        uploadDiv = _react2["default"].createElement(
-	          _reactDropzone2["default"],
-	          { style: dropzoneStyle, activeStyle: dropzoneActiveStyle, onDrop: this.handleFileDrop },
-	          "Drag files to upload"
-	        );
-	      } else {
-	        uploadDiv = _react2["default"].createElement(
-	          "div",
-	          { style: dropzoneStyle },
-	          "Uploading ",
-	          this.state.upload.length,
-	          " files..."
-	        );
-	      }
-
 	      return _react2["default"].createElement(
 	        "div",
 	        null,
@@ -532,8 +607,12 @@
 	          onChangeBookmark: this.handleChangeBookmark,
 	          onClick: this.handleLocationClick
 	        }),
-	        uploadDiv,
-	        this.state.uploadAlert,
+	        _react2["default"].createElement(Upload, {
+	          curBookmarkIndex: this.state.curBookmarkIndex,
+	          dir: this.state.dir,
+	          onUploadEnded: this.handleUploadEnded
+	        }),
+	        this.state.alert,
 	        _react2["default"].createElement(
 	          _reactBootstrap.Table,
 	          { striped: true, hover: true, className: "explorer" },
@@ -49384,6 +49463,14 @@
 	  return arr.slice(1).reduce(function (xs, x) {
 	    return xs.concat([sep, x]);
 	  }, [arr[0]]);
+	};
+
+	module.exports.removeAll = function (arr, value) {
+	  for (var i = arr.length - 1; i >= 0; i--) {
+	    if (arr[i] === value) {
+	      arr.splice(i, 1);
+	    }
+	  }
 	};
 
 	module.exports.fileSizeIEC = function (a, b, c, d, e) {
