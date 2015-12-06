@@ -4,6 +4,7 @@ import koaStatic from 'koa-static';
 import ejs from 'koa-ejs';
 import path from 'path';
 import url from 'url';
+import fs from 'fs';
 import api from './api';
 
 var config = null;
@@ -59,12 +60,23 @@ app.use(function*() {
     return;
   }
 
-  let bundlePath = 'bundle.js';
+  let bundlePath = '/bundle.js';
   if (process.env.NODE_ENV != 'production') {
     bundlePath = 'http://localhost:5001/assets/bundle.js';
   }
   yield this.render('index.html', { bundlePath: bundlePath });
 });
 
-app.listen(port);
-console.log(`server is started on ${port} in ${process.env.NODE_ENV} mode`);
+if (fs.existsSync('cert')) {
+  // sample certificate can be made following command
+  // openssl req -new -x509 -nodes -out server.crt -keyout server.key
+  let options = {
+    key: fs.readFileSync('cert/server.key'),
+    cert: fs.readFileSync('cert/server.crt')
+  };
+  require('https').createServer(options, app.callback()).listen(port);
+  console.log(`server is started on ${port}(https) in ${process.env.NODE_ENV} mode`);
+} else {
+  app.listen(port);
+  console.log(`server is started on ${port} in ${process.env.NODE_ENV} mode`);
+}
