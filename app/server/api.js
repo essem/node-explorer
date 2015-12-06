@@ -65,7 +65,6 @@ let funcs = {
       return;
     }
 
-    filepath = path.resolve('/', filepath);
     koa.response.attachment();
     yield* sendfile.call(koa, filepath);
     if (!koa.status) {
@@ -97,7 +96,6 @@ let funcs = {
       return;
     }
 
-    filepath = path.resolve('/', filepath);
     yield sutil.unlink(filepath);
     koa.status = 200;
   }
