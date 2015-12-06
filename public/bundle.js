@@ -429,6 +429,9 @@
 	  }, {
 	    key: "makeFullPath",
 	    value: function makeFullPath(bookmarkIndex, dir) {
+	      if (dir.length == 0) {
+	        return "/" + bookmarkIndex;
+	      }
 	      return "/" + bookmarkIndex + "/" + dir.join('/');
 	    }
 	  }, {
