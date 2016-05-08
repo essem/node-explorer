@@ -1,27 +1,10 @@
 {
-  "extends": "eslint:recommended",
-  "ecmaFeatures": {
-    "modules": true,
-    "classes": true,
-    "jsx": true,
-    "blockBindings": true,
-    "generators": true,
-    "templateStrings": true,
-    "arrowFunctions": true,
-    "destructuring": true,
-    "forOf": true,
-    "spread": true,
-    "restParams": true
-  },
+  "parser": "babel-eslint",
+  "extends": "airbnb",
   "rules": {
-    "no-console": 0,
-    "semi": 2
+    "react/prefer-stateless-function": 0, // does not support hmr
   },
-  "env": {
-    "node": true,
-    "browser": true
-  },
-  "plugins": [
-    "react"
-  ]
+  "globals": {
+    "API_HOST": false
+  }
 }

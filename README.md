@@ -26,30 +26,51 @@ config/development.json or config/production.json
 }
 ```
 
-### Development environment
+### To use https
 
-Start docker container and install node modules.
+Sample certificate can be made following command.
+
 ```bash
-sudo docker run --name node-explorer-dev -it -v $PWD:/data -p 5000:5000 -p 5001:5001 node:4.2 bash
-cd /data && npm install
-exit
-sudo docker start node-explorer-dev
+mkdir cert
+cd cert
+openssl req -new -x509 -nodes -out server.crt -keyout server.key
 ```
+
+### Development environment
 
 Start back-end node server.
 ```bash
-sudo docker exec -it node-explorer-dev bash -c "cd /data && npm run dev-back"
+npm run dev-back
 ```
 
 Start webpack dev server to serve webpack bundle.
 ```bash
-sudo docker exec -it node-explorer-dev bash -c "cd /data && npm run dev-front"
+npm run dev-front
+```
+
+Open your browser and connect to http://localhost:5001.
+
+### Production environment
+
+Build bundle.
+```bash
+npm run build
+```
+
+Start server.
+```bash
+npm start
 ```
 
 Open your browser and connect to http://localhost:5000.
 Default username/password is tj/tobi.
 
-### Production environment
+### Production environment (Docker)
+
+Build bundle.
+```bash
+npm run build
+```
 
 Build docker image.
 ```bash
@@ -58,5 +79,5 @@ sudo docker build -t node-explorer .
 
 Run container.
 ```bash
-sudo docker run --name=node-explorer -p 9508:5000 -v /media:/media -v /home:/home -d node-explorer
+sudo docker run --name=node-explorer -p 5000:5000 -v /media:/media -v /home:/home -d node-explorer
 ```
