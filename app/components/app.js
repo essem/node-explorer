@@ -5,6 +5,7 @@ import util from '../common/util';
 import Location from './location';
 import Upload from './upload';
 import File from './file';
+import Preview from './preview';
 
 export default class App extends React.Component {
   state = {
@@ -13,6 +14,7 @@ export default class App extends React.Component {
     alert: '',
     dir: [],
     files: [],
+    preview: null,
   };
 
   componentDidMount() {
@@ -97,6 +99,19 @@ export default class App extends React.Component {
     this.queryFiles(this.state.curBookmarkIndex, newDir);
   };
 
+  handlePreviewClick = name => {
+    fetch(`${API_HOST}/api/imageInfo${this.makeCurFullPath()}/${name}`)
+    .then(res => res.json())
+    .then(info => {
+      const preview = Object.assign({}, info, { name });
+      this.setState({ preview });
+    });
+  };
+
+  handleClosePreview = () => {
+    this.setState({ preview: null });
+  };
+
   handleDeleteClick = name => {
     let alertStyle = {
       width: '800px',
@@ -152,6 +167,7 @@ export default class App extends React.Component {
             fullpath={fullpath}
             {...file}
             onDirClick={this.handleDirClick}
+            onPreviewClick={this.handlePreviewClick}
             onDeleteClick={this.handleDeleteClick}
           />
         </td>
@@ -187,6 +203,11 @@ export default class App extends React.Component {
             {files}
           </tbody>
         </Table>
+        <Preview
+          fullpath={fullpath}
+          {...this.state.preview}
+          onClose={this.handleClosePreview}
+        />
       </div>
     );
   }

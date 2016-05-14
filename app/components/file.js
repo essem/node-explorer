@@ -7,6 +7,7 @@ export default class File extends React.Component {
     fullpath: React.PropTypes.string,
     isDirectory: React.PropTypes.bool,
     onDirClick: React.PropTypes.func,
+    onPreviewClick: React.PropTypes.func,
     onDeleteClick: React.PropTypes.func,
   };
 
@@ -68,10 +69,18 @@ export default class File extends React.Component {
     } else if (this.state.fileClicked) {
       let formStyle = {
         display: 'inline',
+        marginLeft: '10px',
         marginRight: '10px',
       };
       content = (
         <div className="file" onMouseLeave={this.handleFileLeave}>
+          <Button
+            bsStyle="primary"
+            bsSize="xsmall"
+            onClick={() => this.props.onPreviewClick(this.props.name)}
+          >
+            Preview
+          </Button>
           <form
             method="get"
             style={formStyle}

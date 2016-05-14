@@ -4,6 +4,7 @@ const path = require('path');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
 const config = require('config');
+const gm = require('gm');
 const logger = require('./logger');
 
 function getFilePath(param) {
@@ -35,6 +36,30 @@ function getFilePath(param) {
   return realpath;
 }
 
+function getImageInfo(filepath) {
+  const info = {};
+  return new Promise((resolve, reject) => {
+    const img = gm(filepath);
+    img.size((err, value) => {
+      if (err) {
+        reject(err);
+        return;
+      }
+
+      info.size = value;
+      img.orientation((err2, value2) => {
+        if (err2) {
+          reject(err2);
+          return;
+        }
+
+        info.orientation = value2;
+        resolve(info);
+      });
+    });
+  });
+}
+
 const funcs = {
   *bookmarks() {
     const bookmarks = config.get('bookmarks');
@@ -59,6 +84,16 @@ const funcs = {
       };
     });
     this.body = files;
+  },
+
+  *imageInfo(param) {
+    const filepath = getFilePath(param);
+    if (!filepath) {
+      this.body = 'invalid location';
+      return;
+    }
+
+    this.body = yield getImageInfo(filepath);
   },
 
   *download(param) {

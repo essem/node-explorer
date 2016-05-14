@@ -23,3 +23,32 @@ table.explorer tr td {
 .glyphicon-folder-close {
   margin-right: 5px;
 }
+
+.preview {
+  display: block;
+  position: fixed;
+  z-index: 1;
+  left: 0px;
+  top: 0px;
+  width: 100%;
+  height: 100%;
+  overflow: auto;
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.preview .close {
+  position: absolute;
+  top: 15px;
+  right: 35px;
+  color: #f1f1f1;
+  font-size: 40px;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+.preview .close:hover,
+.preview .close:focus {
+  color: #bbb;
+  text-decoration: none;
+  cursor: pointer;
+}
