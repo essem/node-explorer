@@ -149,7 +149,8 @@ const funcs = {
 
 function init(app) {
   app.use(function* apiHandler(next) {
-    const result = /^\/api\/(\w+)\/?(.*)/.exec(this.path);
+    const reqPath = decodeURIComponent(this.path);
+    const result = /^\/api\/(\w+)\/?(.*)/.exec(reqPath);
     if (!result) {
       yield next;
       return;
