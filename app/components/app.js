@@ -99,17 +99,35 @@ export default class App extends React.Component {
     this.queryFiles(this.state.curBookmarkIndex, newDir);
   };
 
-  handlePreviewClick = name => {
+  preview(index) {
+    this.setState({ preview: { backgroundOnly: true } });
+    const name = this.state.files[index].name;
     fetch(`${API_HOST}/api/imageInfo${this.makeCurFullPath()}/${name}`)
     .then(res => res.json())
     .then(info => {
-      const preview = Object.assign({}, info, { name });
+      const preview = Object.assign({}, info, { index, name });
       this.setState({ preview });
     });
+  }
+
+  handlePreviewClick = index => {
+    this.preview(index);
   };
 
   handleClosePreview = () => {
     this.setState({ preview: null });
+  };
+
+  handlePrevPreview = () => {
+    if (this.state.preview.index > 0) {
+      this.preview(this.state.preview.index - 1);
+    }
+  };
+
+  handleNextPreview = () => {
+    if (this.state.preview.index < this.state.files.length - 1) {
+      this.preview(this.state.preview.index + 1);
+    }
   };
 
   handleDeleteClick = name => {
@@ -160,14 +178,14 @@ export default class App extends React.Component {
     };
 
     let fullpath = this.makeCurFullPath();
-    let files = this.state.files.map(file => (
+    let files = this.state.files.map((file, index) => (
       <tr key={file.name}>
         <td>
           <File
             fullpath={fullpath}
             {...file}
             onDirClick={this.handleDirClick}
-            onPreviewClick={this.handlePreviewClick}
+            onPreviewClick={() => this.handlePreviewClick(index)}
             onDeleteClick={this.handleDeleteClick}
           />
         </td>
@@ -207,6 +225,8 @@ export default class App extends React.Component {
           fullpath={fullpath}
           {...this.state.preview}
           onClose={this.handleClosePreview}
+          onPrev={this.handlePrevPreview}
+          onNext={this.handleNextPreview}
         />
       </div>
     );

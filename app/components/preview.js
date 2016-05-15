@@ -2,11 +2,32 @@ import React from 'react';
 
 export default class Preview extends React.Component {
   static propTypes = {
+    backgroundOnly: React.PropTypes.bool,
     name: React.PropTypes.string,
     fullpath: React.PropTypes.string,
     size: React.PropTypes.object,
     orientation: React.PropTypes.string,
     onClose: React.PropTypes.func,
+    onPrev: React.PropTypes.func,
+    onNext: React.PropTypes.func,
+  };
+
+  componentDidMount() {
+    window.addEventListener('keyup', this.handleKeyUp);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('keyup', this.handleKeyUp);
+  }
+
+  handleKeyUp = e => {
+    if (e.keyCode === 27) { // ESC
+      this.props.onClose();
+    } else if (e.keyCode === 37) { // Left arrow
+      this.props.onPrev();
+    } else if (e.keyCode === 39 || e.keyCode === 32) { // Right arrow or Space
+      this.props.onNext();
+    }
   };
 
   calcDisplaySize(outWidth, outHeight, imageWidth, imageHeight) {
@@ -24,6 +45,10 @@ export default class Preview extends React.Component {
   }
 
   render() {
+    if (this.props.backgroundOnly) {
+      return <div className="preview"></div>;
+    }
+
     if (!this.props.name) {
       return <div></div>;
     }
