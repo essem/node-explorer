@@ -20,7 +20,7 @@ export default class App extends React.Component {
   componentDidMount() {
     window.addEventListener('popstate', this.handlePopState);
 
-    fetch(`${API_HOST}/api/bookmarks`)
+    fetch(`${API_HOST}/api/bookmarks`, { credentials: 'same-origin' })
     .then(res => res.json())
     .then(bookmarks => {
       this.setState({ bookmarks }, () => {
@@ -55,7 +55,9 @@ export default class App extends React.Component {
   }
 
   queryFiles(bookmarkIndex, dir, addHistory = true) {
-    fetch(`${API_HOST}/api/dir${this.makeFullPath(bookmarkIndex, dir)}`)
+    fetch(`${API_HOST}/api/dir${this.makeFullPath(bookmarkIndex, dir)}`, {
+      credentials: 'same-origin',
+    })
     .then(res => res.json())
     .then(files => {
       files.sort((a, b) => {
@@ -102,7 +104,9 @@ export default class App extends React.Component {
   preview(index) {
     this.setState({ preview: { backgroundOnly: true } });
     const name = this.state.files[index].name;
-    fetch(`${API_HOST}/api/imageInfo${this.makeCurFullPath()}/${name}`)
+    fetch(`${API_HOST}/api/imageInfo${this.makeCurFullPath()}/${name}`, {
+      credentials: 'same-origin',
+    })
     .then(res => res.json())
     .then(info => {
       const preview = Object.assign({}, info, { index, name });
@@ -137,7 +141,9 @@ export default class App extends React.Component {
       padding: '5px 10px',
     };
 
-    fetch(`${API_HOST}/api/delete${this.makeCurFullPath()}/${name}`)
+    fetch(`${API_HOST}/api/delete${this.makeCurFullPath()}/${name}`, {
+      credentials: 'same-origin',
+    })
     .then(() => {
       this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
       this.setState({ alert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });

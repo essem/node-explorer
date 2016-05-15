@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "760abbe10c59a8e84ab1"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "38d8830a53d2677becc9"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -21216,7 +21216,9 @@
 	        padding: '5px 10px'
 	      };
 	
-	      fetch(("") + '/api/delete' + _this.makeCurFullPath() + '/' + name).then(function () {
+	      fetch(("") + '/api/delete' + _this.makeCurFullPath() + '/' + name, {
+	        credentials: 'same-origin'
+	      }).then(function () {
 	        _this.queryFiles(_this.state.curBookmarkIndex, _this.state.dir);
 	        _this.setState({ alert: _react2.default.createElement(
 	            _reactBootstrap.Alert,
@@ -21262,7 +21264,7 @@
 	
 	      window.addEventListener('popstate', this.handlePopState);
 	
-	      fetch(("") + '/api/bookmarks').then(function (res) {
+	      fetch(("") + '/api/bookmarks', { credentials: 'same-origin' }).then(function (res) {
 	        return res.json();
 	      }).then(function (bookmarks) {
 	        _this2.setState({ bookmarks: bookmarks }, function () {
@@ -21305,7 +21307,9 @@
 	
 	      var addHistory = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
 	
-	      fetch(("") + '/api/dir' + this.makeFullPath(bookmarkIndex, dir)).then(function (res) {
+	      fetch(("") + '/api/dir' + this.makeFullPath(bookmarkIndex, dir), {
+	        credentials: 'same-origin'
+	      }).then(function (res) {
 	        return res.json();
 	      }).then(function (files) {
 	        files.sort(function (a, b) {
@@ -21336,7 +21340,9 @@
 	
 	      this.setState({ preview: { backgroundOnly: true } });
 	      var name = this.state.files[index].name;
-	      fetch(("") + '/api/imageInfo' + this.makeCurFullPath() + '/' + name).then(function (res) {
+	      fetch(("") + '/api/imageInfo' + this.makeCurFullPath() + '/' + name, {
+	        credentials: 'same-origin'
+	      }).then(function (res) {
 	        return res.json();
 	      }).then(function (info) {
 	        var preview = Object.assign({}, info, { index: index, name: name });
