@@ -1,4 +1,5 @@
 node_modules/
 logs/
+config/local.json
 npm-debug.log*
 cert
