@@ -1,4 +1,4 @@
- /* eslint-disable global-require */
+/* eslint-disable global-require */
 
 const koa = require('koa');
 const cors = require('koa-cors');

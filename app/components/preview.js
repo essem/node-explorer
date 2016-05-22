@@ -53,7 +53,7 @@ export default class Preview extends React.Component {
       return <div></div>;
     }
 
-    const src = `${API_HOST}/api/download${this.props.fullpath}/${this.props.name}`;
+    const src = `${API_HOST}/api/image${this.props.fullpath}/${this.props.name}?type=max800`;
     const imageStyle = {
       position: 'relative',
       display: 'block',

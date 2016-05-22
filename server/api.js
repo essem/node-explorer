@@ -3,9 +3,12 @@ const sendfile = require('koa-sendfile');
 const path = require('path');
 const Promise = require('bluebird');
 const fs = Promise.promisifyAll(require('fs'));
+const mkdirpAsync = Promise.promisify(require('mkdirp'));
 const config = require('config');
 const gm = require('gm');
 const logger = require('./logger');
+
+Promise.promisifyAll(Object.getPrototypeOf(gm()));
 
 function getFilePath(param) {
   const result = /(\d+)(.*)/.exec(param);
@@ -34,6 +37,13 @@ function getFilePath(param) {
   }
 
   return realpath;
+}
+
+function getImageCacheFilepath(filepath, type) {
+  const ext = path.extname(filepath);
+  const base = filepath.slice(0, filepath.length - ext.length);
+  const cacheFile = `${base}.${type}${ext}`;
+  return path.join(config.cacheDir, cacheFile);
 }
 
 function getImageInfo(filepath) {
@@ -104,6 +114,56 @@ const funcs = {
     }
 
     yield sendfile(this, filepath);
+    if (!this.status) {
+      this.throw(404);
+    }
+  },
+
+  *image(param) {
+    const filepath = getFilePath(param);
+    if (!filepath) {
+      this.body = 'invalid location';
+      return;
+    }
+
+    if (!config.cacheDir) {
+      yield sendfile(this, filepath);
+      return;
+    }
+
+    const type = this.query.type;
+    if (type !== 'sq100' && type !== 'max800') {
+      this.body = 'invalid type';
+      return;
+    }
+
+    const cacheFilepath = getImageCacheFilepath(filepath, type);
+
+    try {
+      yield fs.statAsync(cacheFilepath);
+    } catch (err) {
+      yield mkdirpAsync(path.dirname(cacheFilepath));
+      if (type === 'sq100') {
+        yield gm(filepath)
+          .autoOrient()
+          .gravity('Center')
+          .resize(100, 100, '^')
+          .crop(100, 100)
+          .writeAsync(cacheFilepath);
+      } else if (type === 'max800') {
+        const img = gm(filepath);
+        const size = yield img.sizeAsync();
+        if (size.width > size.height && size.width > 800) {
+          yield img.resize(800, null).writeAsync(cacheFilepath);
+        } else if (size.width < size.height && size.height > 800) {
+          yield img.resize(null, 800).writeAsync(cacheFilepath);
+        } else {
+          yield img.writeAsync(cacheFilepath);
+        }
+      }
+    }
+
+    yield sendfile(this, cacheFilepath);
     if (!this.status) {
       this.throw(404);
     }
