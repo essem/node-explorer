@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "38d8830a53d2677becc9"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "1f7a51b81fbb697bec9c"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -56880,7 +56880,7 @@
 	        return _react2.default.createElement('div', null);
 	      }
 	
-	      var src = ("") + '/api/download' + this.props.fullpath + '/' + this.props.name;
+	      var src = ("") + '/api/image' + this.props.fullpath + '/' + this.props.name + '?type=max800';
 	      var imageStyle = {
 	        position: 'relative',
 	        display: 'block',
