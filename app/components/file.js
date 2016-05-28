@@ -1,15 +1,22 @@
 import React from 'react';
+import PureRenderMixin from 'react-addons-pure-render-mixin';
 import { Modal, Button, Glyphicon } from 'react-bootstrap';
 
 export default class File extends React.Component {
   static propTypes = {
     name: React.PropTypes.string,
     fullpath: React.PropTypes.string,
+    fileIndex: React.PropTypes.number,
     isDirectory: React.PropTypes.bool,
     onDirClick: React.PropTypes.func,
     onPreviewClick: React.PropTypes.func,
     onDeleteClick: React.PropTypes.func,
   };
+
+  constructor(props) {
+    super(props);
+    this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
+  }
 
   state = {
     fileClicked: false,
@@ -18,6 +25,10 @@ export default class File extends React.Component {
 
   handleDirClick = () => {
     this.props.onDirClick(this.props.name);
+  };
+
+  handlePreviewClick = () => {
+    this.props.onPreviewClick(this.props.fileIndex);
   };
 
   handleFileEnter = () => {
@@ -77,7 +88,7 @@ export default class File extends React.Component {
           <Button
             bsStyle="primary"
             bsSize="xsmall"
-            onClick={() => this.props.onPreviewClick(this.props.name)}
+            onClick={this.handlePreviewClick}
           >
             Preview
           </Button>

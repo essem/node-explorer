@@ -189,9 +189,10 @@ export default class App extends React.Component {
         <td>
           <File
             fullpath={fullpath}
+            fileIndex={index}
             {...file}
             onDirClick={this.handleDirClick}
-            onPreviewClick={() => this.handlePreviewClick(index)}
+            onPreviewClick={this.handlePreviewClick}
             onDeleteClick={this.handleDeleteClick}
           />
         </td>

@@ -3,6 +3,7 @@
   "extends": "airbnb",
   "rules": {
     "react/prefer-stateless-function": 0, // does not support hmr
+    "react/jsx-no-bind": [2, { "allowArrowFunctions": false }],
   },
   "globals": {
     "API_HOST": false
