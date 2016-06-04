@@ -1,20 +1,35 @@
+import { connect } from 'react-redux';
 import React from 'react';
 import { Alert, Table } from 'react-bootstrap';
-import moment from 'moment';
 import util from '../common/util';
 import Location from './location';
 import Upload from './upload';
 import File from './file';
 import Preview from './preview';
 
-export default class App extends React.Component {
-  state = {
-    bookmarks: [],
-    curBookmarkIndex: 0,
-    alert: '',
-    dir: [],
-    files: [],
-    preview: null,
+function urlToLoc(str) {
+  const dir = decodeURIComponent(str).split('/');
+  util.removeAll(dir, '');
+  const bookmark = parseInt(dir[0], 10) || 0;
+  return { bookmark, dir: dir.slice(1) };
+}
+
+function locToUrl(loc) {
+  if (loc.dir.length === 0) {
+    return `/${loc.bookmark}`;
+  }
+
+  return `/${loc.bookmark}/${loc.dir.join('/')}`;
+}
+
+class App extends React.Component {
+  static propTypes = {
+    dispatch: React.PropTypes.func,
+    alert: React.PropTypes.object,
+    bookmarks: React.PropTypes.array,
+    loc: React.PropTypes.object,
+    files: React.PropTypes.array,
+    preview: React.PropTypes.object,
   };
 
   componentDidMount() {
@@ -23,9 +38,8 @@ export default class App extends React.Component {
     fetch(`${API_HOST}/api/bookmarks`, { credentials: 'same-origin' })
     .then(res => res.json())
     .then(bookmarks => {
-      this.setState({ bookmarks }, () => {
-        this.updateByUrl(location.pathname);
-      });
+      this.props.dispatch({ type: 'SET_BOOKMARKS', bookmarks });
+      this.queryFiles(urlToLoc(location.pathname), false);
     })
     .catch(() => {});
   }
@@ -34,83 +48,50 @@ export default class App extends React.Component {
     window.removeEventListener('popstate', this.handlePopState);
   }
 
-  makeFullPath(bookmarkIndex, dir) {
-    if (dir.length === 0) {
-      return `/${bookmarkIndex}`;
-    }
-
-    return `/${bookmarkIndex}/${dir.join('/')}`;
-  }
-
-  makeCurFullPath() {
-    return this.makeFullPath(this.state.curBookmarkIndex, this.state.dir);
-  }
-
-  updateByUrl(url) {
-    const parts = decodeURIComponent(url).split('/');
-    util.removeAll(parts, '');
-    const bookmarkIndex = parseInt(parts[0], 10) || 0;
-    const dir = parts.slice(1);
-    this.queryFiles(bookmarkIndex, dir, false);
-  }
-
-  queryFiles(bookmarkIndex, dir, addHistory = true) {
-    fetch(`${API_HOST}/api/dir${this.makeFullPath(bookmarkIndex, dir)}`, {
+  queryFiles(loc, addHistory = true) {
+    fetch(`${API_HOST}/api/dir${locToUrl(loc)}`, {
       credentials: 'same-origin',
     })
     .then(res => res.json())
     .then(files => {
-      files.sort((a, b) => {
-        if (a.isDirectory === b.isDirectory) {
-          return a.name.localeCompare(b.name);
-        } else if (a.isDirectory) {
-          return -1;
-        }
-
-        return 1;
-      });
-      files.forEach(file => {
-        Object.assign(file, {
-          size: util.fileSizeIEC(file.size),
-          mtime: moment(file.mtime).format('YYYY-MM-DD HH:mm:ss'),
-        });
-      });
-      this.setState({ curBookmarkIndex: bookmarkIndex, dir, files });
+      this.props.dispatch({ type: 'CHANGE_LOC', loc, files });
       if (addHistory) {
-        history.pushState(null, null, `/${bookmarkIndex}/${dir.join('/')}`);
+        history.pushState(null, null, `/${loc.bookmark}/${loc.dir.join('/')}`);
       }
     })
     .catch(() => {});
   }
 
   handlePopState = () => {
-    this.updateByUrl(location.pathname);
+    this.queryFiles(urlToLoc(location.pathname), false);
   };
 
   handleChangeBookmark = index => {
-    this.queryFiles(index, []);
+    this.queryFiles({ bookmark: index, dir: [] });
   };
 
   handleLocationClick = index => {
-    this.queryFiles(this.state.curBookmarkIndex, this.state.dir.slice(0, index));
+    const dir = this.props.loc.dir.slice(0, index);
+    const loc = { bookmark: this.props.loc.bookmark, dir };
+    this.queryFiles(loc);
   };
 
   handleDirClick = name => {
-    const newDir = this.state.dir.slice(0);
-    newDir.push(name);
-    this.queryFiles(this.state.curBookmarkIndex, newDir);
+    const dir = this.props.loc.dir.concat(name);
+    const loc = { bookmark: this.props.loc.bookmark, dir };
+    this.queryFiles(loc);
   };
 
   preview(index) {
-    this.setState({ preview: { backgroundOnly: true } });
-    const name = this.state.files[index].name;
-    fetch(`${API_HOST}/api/imageInfo${this.makeCurFullPath()}/${name}`, {
+    this.props.dispatch({ type: 'PREPARE_PREVIEW' });
+    const name = this.props.files[index].name;
+    fetch(`${API_HOST}/api/imageInfo${locToUrl(this.props.loc)}/${name}`, {
       credentials: 'same-origin',
     })
     .then(res => res.json())
     .then(info => {
       const preview = Object.assign({}, info, { index, name });
-      this.setState({ preview });
+      this.props.dispatch({ type: 'START_PREVIEW', preview });
     });
   }
 
@@ -119,18 +100,18 @@ export default class App extends React.Component {
   };
 
   handleClosePreview = () => {
-    this.setState({ preview: null });
+    this.props.dispatch({ type: 'STOP_PREVIEW' });
   };
 
   handlePrevPreview = () => {
-    if (this.state.preview.index > 0) {
-      this.preview(this.state.preview.index - 1);
+    if (this.props.preview.index > 0) {
+      this.preview(this.props.preview.index - 1);
     }
   };
 
   handleNextPreview = () => {
-    if (this.state.preview.index < this.state.files.length - 1) {
-      this.preview(this.state.preview.index + 1);
+    if (this.props.preview.index < this.props.files.length - 1) {
+      this.preview(this.props.preview.index + 1);
     }
   };
 
@@ -141,16 +122,17 @@ export default class App extends React.Component {
       padding: '5px 10px',
     };
 
-    fetch(`${API_HOST}/api/delete${this.makeCurFullPath()}/${name}`, {
+    fetch(`${API_HOST}/api/delete${locToUrl(this.props.loc)}/${name}`, {
       credentials: 'same-origin',
     })
     .then(() => {
-      this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
-      this.setState({ alert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+      this.queryFiles(this.props.loc, false);
+      const alert = <Alert bsStyle="success" style={alertStyle}>Success</Alert>;
+      this.props.dispatch({ type: 'SHOW_ALERT', alert });
     })
     .catch(err => {
       const alert = <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert>;
-      this.setState({ alert });
+      this.props.dispatch({ type: 'SHOW_ALERT', alert });
     });
   };
 
@@ -161,16 +143,18 @@ export default class App extends React.Component {
       padding: '5px 10px',
     };
     if (err) {
-      this.setState({ alert: <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert> });
+      const alert = <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert>;
+      this.props.dispatch({ type: 'SHOW_ALERT', alert });
     } else {
-      this.setState({ alert: <Alert bsStyle="success" style={alertStyle}>Success</Alert> });
+      const alert = <Alert bsStyle="success" style={alertStyle}>Success</Alert>;
+      this.props.dispatch({ type: 'SHOW_ALERT', alert });
     }
 
-    this.queryFiles(this.state.curBookmarkIndex, this.state.dir);
+    this.queryFiles(this.props.loc, false);
   };
 
   render() {
-    if (this.state.bookmarks.length === 0) {
+    if (this.props.bookmarks.length === 0) {
       return <div></div>;
     }
 
@@ -183,8 +167,8 @@ export default class App extends React.Component {
       textAlign: 'right',
     };
 
-    let fullpath = this.makeCurFullPath();
-    let files = this.state.files.map((file, index) => (
+    let fullpath = locToUrl(this.props.loc);
+    let files = this.props.files.map((file, index) => (
       <tr key={file.name}>
         <td>
           <File
@@ -204,18 +188,18 @@ export default class App extends React.Component {
     return (
       <div>
         <Location
-          bookmarks={this.state.bookmarks}
-          curBookmarkIndex={this.state.curBookmarkIndex}
-          dir={this.state.dir}
+          bookmarks={this.props.bookmarks}
+          curBookmarkIndex={this.props.loc.bookmark}
+          dir={this.props.loc.dir}
           onChangeBookmark={this.handleChangeBookmark}
           onClick={this.handleLocationClick}
         />
         <Upload
-          curBookmarkIndex={this.state.curBookmarkIndex}
-          dir={this.state.dir}
+          curBookmarkIndex={this.props.loc.bookmark}
+          dir={this.props.loc.dir}
           onUploadEnded={this.handleUploadEnded}
         />
-        {this.state.alert}
+        {this.props.alert}
         <Table striped hover className="explorer">
           <thead>
             <tr>
@@ -230,7 +214,7 @@ export default class App extends React.Component {
         </Table>
         <Preview
           fullpath={fullpath}
-          {...this.state.preview}
+          {...this.props.preview}
           onClose={this.handleClosePreview}
           onPrev={this.handlePrevPreview}
           onNext={this.handleNextPreview}
@@ -239,3 +223,13 @@ export default class App extends React.Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  alert: state.alert,
+  bookmarks: state.bookmarks,
+  loc: state.loc,
+  files: state.files,
+  preview: state.preview,
+});
+
+export default connect(mapStateToProps)(App);
