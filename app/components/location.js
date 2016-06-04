@@ -1,27 +1,31 @@
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import React from 'react';
 import { ButtonToolbar, SplitButton, MenuItem, ButtonGroup, Button } from 'react-bootstrap';
 
-export default class Location extends React.Component {
+class Location extends React.Component {
   static propTypes = {
+    dispatch: React.PropTypes.func,
+    loc: React.PropTypes.object,
     bookmarks: React.PropTypes.array,
-    curBookmarkIndex: React.PropTypes.number,
-    dir: React.PropTypes.array,
-    onChangeBookmark: React.PropTypes.func,
-    onClick: React.PropTypes.func,
   };
 
   handleBookmarkClick = e => {
     const index = parseInt(e.target.dataset.index, 10);
-    this.props.onChangeBookmark(index);
+    const loc = { bookmark: index, dir: [] };
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   handleRootClick = () => {
-    this.props.onClick(0);
+    const loc = { bookmark: this.props.loc.bookmark, dir: [] };
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   handleClick = e => {
     const index = parseInt(e.target.dataset.index, 10);
-    this.props.onClick(index);
+    const dir = this.props.loc.dir.slice(0, index);
+    const loc = { bookmark: this.props.loc.bookmark, dir };
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   render() {
@@ -30,7 +34,7 @@ export default class Location extends React.Component {
         <SplitButton
           id="location"
           bsStyle="primary"
-          title={this.props.bookmarks[this.props.curBookmarkIndex]}
+          title={this.props.bookmarks[this.props.loc.bookmark]}
           onClick={this.handleRootClick}
         >
           {this.props.bookmarks.map((bookmark, index) => (
@@ -41,7 +45,7 @@ export default class Location extends React.Component {
         </SplitButton>
 
         <ButtonGroup>
-          {this.props.dir.map((name, index) => (
+          {this.props.loc.dir.map((name, index) => (
             <Button key={index} onClick={this.handleClick} data-index={index + 1}>
               {name}
             </Button>
@@ -51,3 +55,10 @@ export default class Location extends React.Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  bookmarks: state.bookmarks,
+  loc: state.loc,
+});
+
+export default connect(mapStateToProps)(Location);

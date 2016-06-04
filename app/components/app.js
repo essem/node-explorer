@@ -32,17 +32,6 @@ class App extends React.Component {
     this.props.dispatch(actions.changeLoc(loc, false));
   };
 
-  handleChangeBookmark = index => {
-    const loc = { bookmark: index, dir: [] };
-    this.props.dispatch(actions.changeLoc(loc));
-  };
-
-  handleLocationClick = index => {
-    const dir = this.props.loc.dir.slice(0, index);
-    const loc = { bookmark: this.props.loc.bookmark, dir };
-    this.props.dispatch(actions.changeLoc(loc));
-  };
-
   handleDirClick = name => {
     const dir = this.props.loc.dir.concat(name);
     const loc = { bookmark: this.props.loc.bookmark, dir };
@@ -146,13 +135,7 @@ class App extends React.Component {
 
     return (
       <div>
-        <Location
-          bookmarks={this.props.bookmarks}
-          curBookmarkIndex={this.props.loc.bookmark}
-          dir={this.props.loc.dir}
-          onChangeBookmark={this.handleChangeBookmark}
-          onClick={this.handleLocationClick}
-        />
+        <Location />
         <Upload
           curBookmarkIndex={this.props.loc.bookmark}
           dir={this.props.loc.dir}
