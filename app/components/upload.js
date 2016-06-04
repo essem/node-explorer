@@ -1,13 +1,14 @@
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import React from 'react';
 import { ProgressBar } from 'react-bootstrap';
 import Dropzone from 'react-dropzone';
 import request from 'superagent';
 
-export default class Upload extends React.Component {
+class Upload extends React.Component {
   static propTypes = {
-    curBookmarkIndex: React.PropTypes.number,
-    dir: React.PropTypes.array,
-    onUploadEnded: React.PropTypes.func,
+    dispatch: React.PropTypes.func,
+    loc: React.PropTypes.object,
   };
 
   state = {
@@ -18,7 +19,7 @@ export default class Upload extends React.Component {
   handleFileDrop = files => {
     this.setState({ upload: files });
 
-    const curFullPath = `/${this.props.curBookmarkIndex}/${this.props.dir.join('/')}`;
+    const curFullPath = `/${this.props.loc.bookmark}/${this.props.loc.dir.join('/')}`;
     const req = request.post(`${API_HOST}/api/upload${curFullPath}`);
     files.forEach(file => {
       req.attach(file.name, file, file.name);
@@ -26,9 +27,25 @@ export default class Upload extends React.Component {
     req.on('progress', e => {
       this.setState({ progress: Math.trunc(e.percent) });
     }).end((err) => {
-      this.props.onUploadEnded(err);
+      this.handleUploadEnded(err);
       this.setState({ upload: [] });
     });
+  };
+
+  handleUploadEnded = err => {
+    if (err) {
+      this.props.dispatch({
+        type: 'SHOW_ALERT',
+        alert: { type: 'danger', message: err.toString() },
+      });
+    } else {
+      this.props.dispatch({
+        type: 'SHOW_ALERT',
+        alert: { type: 'success', message: 'Success' },
+      });
+    }
+
+    this.props.dispatch(actions.changeLoc(this.props.loc), false);
   };
 
   render() {
@@ -87,3 +104,10 @@ export default class Upload extends React.Component {
     );
   }
 }
+
+const mapStateToProps = state => ({
+  alert: state.alert,
+  loc: state.loc,
+});
+
+export default connect(mapStateToProps)(Upload);

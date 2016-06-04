@@ -67,22 +67,6 @@ class App extends React.Component {
     this.props.dispatch(actions.deleteFile(this.props.loc, name));
   };
 
-  handleUploadEnded = err => {
-    if (err) {
-      this.props.dispatch({
-        type: 'SHOW_ALERT',
-        alert: { type: 'danger', message: err.toString() },
-      });
-    } else {
-      this.props.dispatch({
-        type: 'SHOW_ALERT',
-        alert: { type: 'success', message: 'Success' },
-      });
-    }
-
-    this.props.dispatch(actions.changeLoc(this.props.loc), false);
-  };
-
   renderAlert() {
     if (!this.props.alert) {
       return '';
@@ -136,11 +120,7 @@ class App extends React.Component {
     return (
       <div>
         <Location />
-        <Upload
-          curBookmarkIndex={this.props.loc.bookmark}
-          dir={this.props.loc.dir}
-          onUploadEnded={this.handleUploadEnded}
-        />
+        <Upload />
         {this.renderAlert()}
         <Table striped hover className="explorer">
           <thead>
