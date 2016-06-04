@@ -1,8 +1,8 @@
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import React from 'react';
-import { Alert } from 'react-bootstrap';
 import { urlToLoc } from '../common/util';
+import Alert from './alert';
 import Location from './location';
 import Upload from './upload';
 import FileList from './fileList';
@@ -11,7 +11,6 @@ import Preview from './preview';
 class App extends React.Component {
   static propTypes = {
     dispatch: React.PropTypes.func,
-    alert: React.PropTypes.object,
     bookmarks: React.PropTypes.array,
   };
 
@@ -29,24 +28,6 @@ class App extends React.Component {
     this.props.dispatch(actions.changeLoc(loc, false));
   };
 
-  renderAlert() {
-    if (!this.props.alert) {
-      return '';
-    }
-
-    const alertStyle = {
-      width: '800px',
-      marginTop: '10px',
-      padding: '5px 10px',
-    };
-
-    return (
-      <Alert bsStyle={this.props.alert.type} style={alertStyle}>
-        {this.props.alert.message}
-      </Alert>
-    );
-  }
-
   render() {
     if (this.props.bookmarks.length === 0) {
       return <div></div>;
@@ -56,7 +37,7 @@ class App extends React.Component {
       <div>
         <Location />
         <Upload />
-        {this.renderAlert()}
+        <Alert />
         <FileList />
         <Preview />
       </div>
@@ -65,7 +46,6 @@ class App extends React.Component {
 }
 
 const mapStateToProps = state => ({
-  alert: state.alert,
   bookmarks: state.bookmarks,
 });
 
