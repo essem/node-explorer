@@ -1,4 +1,5 @@
-import { createStore, combineReducers } from 'redux';
+import { createStore, combineReducers, compose, applyMiddleware } from 'redux';
+import thunk from 'redux-thunk';
 import { Provider } from 'react-redux';
 import alertReducer from './reducers/alert';
 import bookmarksReducer from './reducers/bookmarks';
@@ -24,7 +25,10 @@ const store = createStore(
     preview: previewReducer,
   }),
   undefined,
-  window.devToolsExtension ? window.devToolsExtension() : undefined
+  compose(
+    applyMiddleware(thunk),
+    window.devToolsExtension ? window.devToolsExtension() : f => f,
+  ),
 );
 
 const app = document.createElement('div');

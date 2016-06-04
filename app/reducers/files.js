@@ -1,4 +1,4 @@
-import util from '../common/util';
+import { fileSizeIEC } from '../common/util';
 import moment from 'moment';
 
 const reducer = (state = [], action) => {
@@ -8,7 +8,7 @@ const reducer = (state = [], action) => {
         const files = action.files.map(file => (
           {
             ...file,
-            size: util.fileSizeIEC(file.size),
+            size: fileSizeIEC(file.size),
             mtime: moment(file.mtime).format('YYYY-MM-DD HH:mm:ss'),
           }
         ));

@@ -1,26 +1,12 @@
 import { connect } from 'react-redux';
+import * as actions from '../actions';
 import React from 'react';
 import { Alert, Table } from 'react-bootstrap';
-import util from '../common/util';
+import { locToUrl, urlToLoc } from '../common/util';
 import Location from './location';
 import Upload from './upload';
 import File from './file';
 import Preview from './preview';
-
-function urlToLoc(str) {
-  const dir = decodeURIComponent(str).split('/');
-  util.removeAll(dir, '');
-  const bookmark = parseInt(dir[0], 10) || 0;
-  return { bookmark, dir: dir.slice(1) };
-}
-
-function locToUrl(loc) {
-  if (loc.dir.length === 0) {
-    return `/${loc.bookmark}`;
-  }
-
-  return `/${loc.bookmark}/${loc.dir.join('/')}`;
-}
 
 class App extends React.Component {
   static propTypes = {
@@ -34,65 +20,38 @@ class App extends React.Component {
 
   componentDidMount() {
     window.addEventListener('popstate', this.handlePopState);
-
-    fetch(`${API_HOST}/api/bookmarks`, { credentials: 'same-origin' })
-    .then(res => res.json())
-    .then(bookmarks => {
-      this.props.dispatch({ type: 'SET_BOOKMARKS', bookmarks });
-      this.queryFiles(urlToLoc(location.pathname), false);
-    })
-    .catch(() => {});
+    this.props.dispatch(actions.initApp());
   }
 
   componentWillUnmount() {
     window.removeEventListener('popstate', this.handlePopState);
   }
 
-  queryFiles(loc, addHistory = true) {
-    fetch(`${API_HOST}/api/dir${locToUrl(loc)}`, {
-      credentials: 'same-origin',
-    })
-    .then(res => res.json())
-    .then(files => {
-      this.props.dispatch({ type: 'CHANGE_LOC', loc, files });
-      if (addHistory) {
-        history.pushState(null, null, `/${loc.bookmark}/${loc.dir.join('/')}`);
-      }
-    })
-    .catch(() => {});
-  }
-
   handlePopState = () => {
-    this.queryFiles(urlToLoc(location.pathname), false);
+    const loc = urlToLoc(location.pathname);
+    this.props.dispatch(actions.changeLoc(loc, false));
   };
 
   handleChangeBookmark = index => {
-    this.queryFiles({ bookmark: index, dir: [] });
+    const loc = { bookmark: index, dir: [] };
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   handleLocationClick = index => {
     const dir = this.props.loc.dir.slice(0, index);
     const loc = { bookmark: this.props.loc.bookmark, dir };
-    this.queryFiles(loc);
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   handleDirClick = name => {
     const dir = this.props.loc.dir.concat(name);
     const loc = { bookmark: this.props.loc.bookmark, dir };
-    this.queryFiles(loc);
+    this.props.dispatch(actions.changeLoc(loc));
   };
 
   preview(index) {
-    this.props.dispatch({ type: 'PREPARE_PREVIEW' });
     const name = this.props.files[index].name;
-    fetch(`${API_HOST}/api/imageInfo${locToUrl(this.props.loc)}/${name}`, {
-      credentials: 'same-origin',
-    })
-    .then(res => res.json())
-    .then(info => {
-      const preview = Object.assign({}, info, { index, name });
-      this.props.dispatch({ type: 'START_PREVIEW', preview });
-    });
+    this.props.dispatch(actions.startPreview(this.props.loc, index, name));
   }
 
   handlePreviewClick = index => {
@@ -116,42 +75,42 @@ class App extends React.Component {
   };
 
   handleDeleteClick = name => {
-    let alertStyle = {
-      width: '800px',
-      marginTop: '10px',
-      padding: '5px 10px',
-    };
-
-    fetch(`${API_HOST}/api/delete${locToUrl(this.props.loc)}/${name}`, {
-      credentials: 'same-origin',
-    })
-    .then(() => {
-      this.queryFiles(this.props.loc, false);
-      const alert = <Alert bsStyle="success" style={alertStyle}>Success</Alert>;
-      this.props.dispatch({ type: 'SHOW_ALERT', alert });
-    })
-    .catch(err => {
-      const alert = <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert>;
-      this.props.dispatch({ type: 'SHOW_ALERT', alert });
-    });
+    this.props.dispatch(actions.deleteFile(this.props.loc, name));
   };
 
   handleUploadEnded = err => {
-    let alertStyle = {
+    if (err) {
+      this.props.dispatch({
+        type: 'SHOW_ALERT',
+        alert: { type: 'danger', message: err.toString() },
+      });
+    } else {
+      this.props.dispatch({
+        type: 'SHOW_ALERT',
+        alert: { type: 'success', message: 'Success' },
+      });
+    }
+
+    this.props.dispatch(actions.changeLoc(this.props.loc), false);
+  };
+
+  renderAlert() {
+    if (!this.props.alert) {
+      return '';
+    }
+
+    const alertStyle = {
       width: '800px',
       marginTop: '10px',
       padding: '5px 10px',
     };
-    if (err) {
-      const alert = <Alert bsStyle="danger" style={alertStyle}>{err.toString()}</Alert>;
-      this.props.dispatch({ type: 'SHOW_ALERT', alert });
-    } else {
-      const alert = <Alert bsStyle="success" style={alertStyle}>Success</Alert>;
-      this.props.dispatch({ type: 'SHOW_ALERT', alert });
-    }
 
-    this.queryFiles(this.props.loc, false);
-  };
+    return (
+      <Alert bsStyle={this.props.alert.type} style={alertStyle}>
+        {this.props.alert.message}
+      </Alert>
+    );
+  }
 
   render() {
     if (this.props.bookmarks.length === 0) {
@@ -199,7 +158,7 @@ class App extends React.Component {
           dir={this.props.loc.dir}
           onUploadEnded={this.handleUploadEnded}
         />
-        {this.props.alert}
+        {this.renderAlert()}
         <Table striped hover className="explorer">
           <thead>
             <tr>
