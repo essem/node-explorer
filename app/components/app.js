@@ -47,22 +47,6 @@ class App extends React.Component {
     this.preview(index);
   };
 
-  handleClosePreview = () => {
-    this.props.dispatch({ type: 'STOP_PREVIEW' });
-  };
-
-  handlePrevPreview = () => {
-    if (this.props.preview.index > 0) {
-      this.preview(this.props.preview.index - 1);
-    }
-  };
-
-  handleNextPreview = () => {
-    if (this.props.preview.index < this.props.files.length - 1) {
-      this.preview(this.props.preview.index + 1);
-    }
-  };
-
   handleDeleteClick = name => {
     this.props.dispatch(actions.deleteFile(this.props.loc, name));
   };
@@ -134,13 +118,7 @@ class App extends React.Component {
             {files}
           </tbody>
         </Table>
-        <Preview
-          fullpath={fullpath}
-          {...this.props.preview}
-          onClose={this.handleClosePreview}
-          onPrev={this.handlePrevPreview}
-          onNext={this.handleNextPreview}
-        />
+        <Preview />
       </div>
     );
   }

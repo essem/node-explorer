@@ -1,15 +1,14 @@
+import { connect } from 'react-redux';
+import * as actions from '../actions';
 import React from 'react';
+import { locToUrl } from '../common/util';
 
-export default class Preview extends React.Component {
+class Preview extends React.Component {
   static propTypes = {
-    backgroundOnly: React.PropTypes.bool,
-    name: React.PropTypes.string,
-    fullpath: React.PropTypes.string,
-    size: React.PropTypes.object,
-    orientation: React.PropTypes.string,
-    onClose: React.PropTypes.func,
-    onPrev: React.PropTypes.func,
-    onNext: React.PropTypes.func,
+    dispatch: React.PropTypes.func,
+    loc: React.PropTypes.object,
+    files: React.PropTypes.array,
+    preview: React.PropTypes.object,
   };
 
   componentDidMount() {
@@ -20,13 +19,33 @@ export default class Preview extends React.Component {
     window.removeEventListener('keyup', this.handleKeyUp);
   }
 
+  handleClose = () => {
+    this.props.dispatch({ type: 'STOP_PREVIEW' });
+  };
+
+  handlePrev = () => {
+    if (this.props.preview.index > 0) {
+      const index = this.props.preview.index - 1;
+      const name = this.props.files[index].name;
+      this.props.dispatch(actions.startPreview(this.props.loc, index, name));
+    }
+  };
+
+  handleNext = () => {
+    if (this.props.preview.index < this.props.files.length - 1) {
+      const index = this.props.preview.index + 1;
+      const name = this.props.files[index].name;
+      this.props.dispatch(actions.startPreview(this.props.loc, index, name));
+    }
+  };
+
   handleKeyUp = e => {
     if (e.keyCode === 27) { // ESC
-      this.props.onClose();
+      this.handleClose();
     } else if (e.keyCode === 37) { // Left arrow
-      this.props.onPrev();
+      this.handlePrev();
     } else if (e.keyCode === 39 || e.keyCode === 32) { // Right arrow or Space
-      this.props.onNext();
+      this.handleNext();
     }
   };
 
@@ -45,15 +64,20 @@ export default class Preview extends React.Component {
   }
 
   render() {
-    if (this.props.backgroundOnly) {
-      return <div className="preview"></div>;
-    }
-
-    if (!this.props.name) {
+    if (!this.props.preview) {
       return <div></div>;
     }
 
-    const src = `${API_HOST}/api/image${this.props.fullpath}/${this.props.name}?type=max800`;
+    if (this.props.preview.backgroundOnly) {
+      return <div className="preview"></div>;
+    }
+
+    if (!this.props.preview.name) {
+      return <div></div>;
+    }
+
+    const fullpath = locToUrl(this.props.loc);
+    const src = `${API_HOST}/api/image${fullpath}/${this.props.preview.name}?type=max800`;
     const imageStyle = {
       position: 'relative',
       display: 'block',
@@ -70,19 +94,19 @@ export default class Preview extends React.Component {
 
     const outWidth = window.document.documentElement.clientWidth;
     const outHeight = window.document.documentElement.clientHeight;
-    const { width, height } = this.props.size;
+    const { width, height } = this.props.preview.size;
     let displaySize = null;
 
-    if (this.props.orientation === 'RightTop') {
+    if (this.props.preview.orientation === 'RightTop') {
       // swap width and height
       displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
       imageStyle.transform += ' rotate(90deg)';
-    } else if (this.props.orientation === 'BottomRight') {
+    } else if (this.props.preview.orientation === 'BottomRight') {
       displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
       imageStyle.width = `${displaySize.width}px`;
       imageStyle.transform += ' rotate(180deg)';
-    } else if (this.props.orientation === 'LeftBottom') {
+    } else if (this.props.preview.orientation === 'LeftBottom') {
       // swap width and height
       displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
@@ -99,19 +123,27 @@ export default class Preview extends React.Component {
       <div className="preview">
         <span
           className="close"
-          onClick={this.props.onClose}
+          onClick={this.handleClose}
         >
           &times;
         </span>
         <img
           style={imageStyle}
           src={src}
-          alt={this.props.name}
+          alt={this.props.preview.name}
         />
         <div style={captionStyle}>
-          {this.props.name}
+          {this.props.preview.name}
         </div>
       </div>
     );
   }
 }
+
+const mapStateToProps = state => ({
+  loc: state.loc,
+  files: state.files,
+  preview: state.preview,
+});
+
+export default connect(mapStateToProps)(Preview);
