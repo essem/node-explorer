@@ -3,7 +3,7 @@ body {
 }
 
 table.explorer {
-  width: 800px;
+  width: 100%;
 }
 
 table.explorer tr td {
@@ -27,7 +27,7 @@ table.explorer tr td {
 .preview {
   display: block;
   position: fixed;
-  z-index: 1;
+  z-index: 10;
   left: 0px;
   top: 0px;
   width: 100%;

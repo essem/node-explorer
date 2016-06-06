@@ -50,7 +50,7 @@ class Upload extends React.Component {
 
   render() {
     let dropzoneStyle = {
-      width: '800px',
+      width: '100%',
       height: '50px',
       lineHeight: '50px',
       margin: '15px 0px',
@@ -66,7 +66,7 @@ class Upload extends React.Component {
 
     let uploadStyle = {
       position: 'relative',
-      width: '800px',
+      width: '100%',
       height: '50px',
       margin: '15px 0px',
     };

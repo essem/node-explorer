@@ -6,13 +6,16 @@ import { urlToLoc } from '../common/util';
 import Alert from './alert';
 import Bookmark from './bookmark';
 import Location from './location';
+import ViewSwitcher from './viewSwitcher';
 import Upload from './upload';
 import FileList from './fileList';
+import ThumbnailList from './thumbnailList';
 import Preview from './preview';
 
 class App extends React.Component {
   static propTypes = {
     dispatch: React.PropTypes.func,
+    view: React.PropTypes.string,
     bookmarks: React.PropTypes.array,
   };
 
@@ -30,20 +33,29 @@ class App extends React.Component {
     this.props.dispatch(actions.changeLoc(loc, false));
   };
 
+  renderList() {
+    switch (this.props.view) {
+      case 'thumbnail': return <ThumbnailList />;
+      default:
+        return <FileList />;
+    }
+  }
+
   render() {
     if (this.props.bookmarks.length === 0) {
       return <div></div>;
     }
 
     return (
-      <div>
+      <div className="container">
         <ButtonToolbar>
           <Bookmark />
           <Location />
+          <ViewSwitcher />
         </ButtonToolbar>
         <Upload />
         <Alert />
-        <FileList />
+        {this.renderList()}
         <Preview />
       </div>
     );
@@ -51,6 +63,7 @@ class App extends React.Component {
 }
 
 const mapStateToProps = state => ({
+  view: state.ui.view,
   bookmarks: state.bookmarks,
 });
 

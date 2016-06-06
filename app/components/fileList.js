@@ -18,13 +18,9 @@ class FileList extends React.Component {
     this.props.dispatch(actions.changeLoc(loc));
   };
 
-  preview(index) {
+  handlePreviewClick = index => {
     const name = this.props.files[index].name;
     this.props.dispatch(actions.startPreview(this.props.loc, index, name));
-  }
-
-  handlePreviewClick = index => {
-    this.preview(index);
   };
 
   handleDeleteClick = name => {

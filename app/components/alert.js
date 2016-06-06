@@ -14,7 +14,7 @@ class Alert extends React.Component {
     }
 
     const alertStyle = {
-      width: '800px',
+      width: '100%',
       marginTop: '10px',
       padding: '5px 10px',
     };
