@@ -1,8 +1,10 @@
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import React from 'react';
+import { ButtonToolbar } from 'react-bootstrap';
 import { urlToLoc } from '../common/util';
 import Alert from './alert';
+import Bookmark from './bookmark';
 import Location from './location';
 import Upload from './upload';
 import FileList from './fileList';
@@ -35,7 +37,10 @@ class App extends React.Component {
 
     return (
       <div>
-        <Location />
+        <ButtonToolbar>
+          <Bookmark />
+          <Location />
+        </ButtonToolbar>
         <Upload />
         <Alert />
         <FileList />
