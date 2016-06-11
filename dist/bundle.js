@@ -65,7 +65,7 @@
 /******/ 	}
 /******/ 	
 /******/ 	var hotApplyOnUpdate = true;
-/******/ 	var hotCurrentHash = "85fa6a54cbadac5da9a8"; // eslint-disable-line no-unused-vars
+/******/ 	var hotCurrentHash = "d8e6f53de0851ebf5c03"; // eslint-disable-line no-unused-vars
 /******/ 	var hotCurrentModuleData = {};
 /******/ 	var hotCurrentParents = []; // eslint-disable-line no-unused-vars
 /******/ 	
@@ -37106,7 +37106,7 @@
 	
 	
 	// module
-	exports.push([module.id, "body {\n  padding: 30px;\n}\n\ntable.explorer {\n  width: 100%;\n}\n\ntable.explorer tr td {\n  padding: 0px;\n  height: 40px;\n  line-height: 40px;\n  padding: 0px 10px;\n}\n\n.glyphicon-menu-right {\n  margin-left: 10px;\n  margin-right: 10px;\n  font-size: 60%;\n  color: #888;\n}\n\n.glyphicon-folder-close {\n  margin-right: 5px;\n}\n\n.preview {\n  display: block;\n  position: fixed;\n  z-index: 10;\n  left: 0px;\n  top: 0px;\n  width: 100%;\n  height: 100%;\n  overflow: auto;\n  background-color: rgba(0, 0, 0, 0.8);\n}\n\n.preview .close {\n  position: absolute;\n  top: 15px;\n  right: 35px;\n  color: #f1f1f1;\n  font-size: 40px;\n  font-weight: bold;\n  transition: 0.3s;\n}\n\n.preview .close:hover,\n.preview .close:focus {\n  color: #bbb;\n  text-decoration: none;\n  cursor: pointer;\n}\n", ""]);
+	exports.push([module.id, "body {\n  padding-top: 30px;\n}\n\ntable.explorer {\n  width: 100%;\n}\n\ntable.explorer tr td {\n  padding: 0px;\n  height: 40px;\n  line-height: 40px;\n  padding: 0px 10px;\n}\n\n.glyphicon-menu-right {\n  margin-left: 10px;\n  margin-right: 10px;\n  font-size: 60%;\n  color: #888;\n}\n\n.glyphicon-folder-close {\n  margin-right: 5px;\n}\n\n.preview {\n  display: block;\n  position: fixed;\n  z-index: 10;\n  left: 0px;\n  top: 0px;\n  width: 100%;\n  height: 100%;\n  overflow: auto;\n  background-color: rgba(0, 0, 0, 0.8);\n}\n\n.preview .close {\n  position: absolute;\n  top: 15px;\n  right: 35px;\n  color: #f1f1f1;\n  font-size: 40px;\n  font-weight: bold;\n  transition: 0.3s;\n}\n\n.preview .close:hover,\n.preview .close:focus {\n  color: #bbb;\n  text-decoration: none;\n  cursor: pointer;\n}\n", ""]);
 	
 	// exports
 
@@ -59829,6 +59829,19 @@
 	
 	function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 	
+	function responsiveValue(width, phone, tablet, desktop, largeDesktop) {
+	  if (width < 768) {
+	    return phone;
+	  }
+	  if (width < 992) {
+	    return tablet;
+	  }
+	  if (width < 1200) {
+	    return desktop;
+	  }
+	  return largeDesktop;
+	}
+	
 	var Preview = function (_React$Component) {
 	  _inherits(Preview, _React$Component);
 	
@@ -59887,12 +59900,15 @@
 	      var outRatio = outWidth / outHeight;
 	      var imageRatio = imageWidth / imageHeight;
 	      if (outRatio > imageRatio) {
-	        var _height = outHeight * 0.8;
+	        // do not use full size(1), need space for caption
+	        var _contentRatio = responsiveValue(outWidth, 0.9, 0.9, 0.8, 0.8);
+	        var _height = outHeight * _contentRatio;
 	        var _width = _height * imageRatio;
 	        return { width: _width, height: _height };
 	      }
 	
-	      var width = outWidth * 0.8;
+	      var contentRatio = responsiveValue(outWidth, 1, 0.9, 0.8, 0.8);
+	      var width = outWidth * contentRatio;
 	      var height = width / imageRatio;
 	      return { width: width, height: height };
 	    }
@@ -59915,10 +59931,7 @@
 	      var src = ("") + '/api/image' + fullpath + '/' + this.props.preview.name + '?type=max800';
 	      var imageStyle = {
 	        position: 'relative',
-	        display: 'block',
-	        margin: 'auto',
-	        top: '50%',
-	        transform: 'translateY(-50%)'
+	        display: 'block'
 	      };
 	      var captionStyle = {
 	        position: 'absolute',
@@ -59939,20 +59952,28 @@
 	        // swap width and height
 	        displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
 	        imageStyle.width = displaySize.height + 'px';
-	        imageStyle.transform += ' rotate(90deg)';
+	        imageStyle.transform = ' rotate(90deg)';
+	        imageStyle.left = (outWidth - displaySize.height) / 2 + 'px';
+	        imageStyle.top = (outHeight - displaySize.width) / 2 + 'px';
 	      } else if (this.props.preview.orientation === 'BottomRight') {
 	        displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
 	        imageStyle.width = displaySize.width + 'px';
-	        imageStyle.transform += ' rotate(180deg)';
+	        imageStyle.transform = ' rotate(180deg)';
+	        imageStyle.left = (outWidth - displaySize.width) / 2 + 'px';
+	        imageStyle.top = (outHeight - displaySize.height) / 2 + 'px';
 	      } else if (this.props.preview.orientation === 'LeftBottom') {
 	        // swap width and height
 	        displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
 	        imageStyle.width = displaySize.height + 'px';
-	        imageStyle.transform += ' rotate(270deg)';
+	        imageStyle.transform = ' rotate(270deg)';
+	        imageStyle.left = (outWidth - displaySize.height) / 2 + 'px';
+	        imageStyle.top = (outHeight - displaySize.width) / 2 + 'px';
 	      } else {
 	        // TopLeft or unknown
 	        displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
 	        imageStyle.width = displaySize.width + 'px';
+	        imageStyle.left = (outWidth - displaySize.width) / 2 + 'px';
+	        imageStyle.top = (outHeight - displaySize.height) / 2 + 'px';
 	      }
 	
 	      var captionY = (outHeight - displaySize.height) / 2 + displaySize.height;
