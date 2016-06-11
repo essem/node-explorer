@@ -3,6 +3,13 @@ import * as actions from '../actions';
 import React from 'react';
 import { locToUrl } from '../common/util';
 
+function responsiveValue(width, phone, tablet, desktop, largeDesktop) {
+  if (width < 768) { return phone; }
+  if (width < 992) { return tablet; }
+  if (width < 1200) { return desktop; }
+  return largeDesktop;
+}
+
 class Preview extends React.Component {
   static propTypes = {
     dispatch: React.PropTypes.func,
@@ -53,12 +60,15 @@ class Preview extends React.Component {
     const outRatio = outWidth / outHeight;
     const imageRatio = imageWidth / imageHeight;
     if (outRatio > imageRatio) {
-      const height = outHeight * 0.8;
+      // do not use full size(1), need space for caption
+      const contentRatio = responsiveValue(outWidth, 0.9, 0.9, 0.8, 0.8);
+      const height = outHeight * contentRatio;
       const width = height * imageRatio;
       return { width, height };
     }
 
-    const width = outWidth * 0.8;
+    const contentRatio = responsiveValue(outWidth, 1, 0.9, 0.8, 0.8);
+    const width = outWidth * contentRatio;
     const height = width / imageRatio;
     return { width, height };
   }
@@ -81,9 +91,6 @@ class Preview extends React.Component {
     const imageStyle = {
       position: 'relative',
       display: 'block',
-      margin: 'auto',
-      top: '50%',
-      transform: 'translateY(-50%)',
     };
     const captionStyle = {
       position: 'absolute',
@@ -101,19 +108,27 @@ class Preview extends React.Component {
       // swap width and height
       displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
-      imageStyle.transform += ' rotate(90deg)';
+      imageStyle.transform = ' rotate(90deg)';
+      imageStyle.left = `${(outWidth - displaySize.height) / 2}px`;
+      imageStyle.top = `${(outHeight - displaySize.width) / 2}px`;
     } else if (this.props.preview.orientation === 'BottomRight') {
       displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
       imageStyle.width = `${displaySize.width}px`;
-      imageStyle.transform += ' rotate(180deg)';
+      imageStyle.transform = ' rotate(180deg)';
+      imageStyle.left = `${(outWidth - displaySize.width) / 2}px`;
+      imageStyle.top = `${(outHeight - displaySize.height) / 2}px`;
     } else if (this.props.preview.orientation === 'LeftBottom') {
       // swap width and height
       displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
-      imageStyle.transform += ' rotate(270deg)';
+      imageStyle.transform = ' rotate(270deg)';
+      imageStyle.left = `${(outWidth - displaySize.height) / 2}px`;
+      imageStyle.top = `${(outHeight - displaySize.width) / 2}px`;
     } else { // TopLeft or unknown
       displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
       imageStyle.width = `${displaySize.width}px`;
+      imageStyle.left = `${(outWidth - displaySize.width) / 2}px`;
+      imageStyle.top = `${(outHeight - displaySize.height) / 2}px`;
     }
 
     const captionY = (outHeight - displaySize.height) / 2 + displaySize.height;
