@@ -2,6 +2,7 @@
 
 const koa = require('koa');
 const cors = require('koa-cors');
+const send = require('koa-send');
 const auth = require('koa-basic-auth');
 const morgan = require('koa-morgan');
 const config = require('config');
@@ -46,6 +47,10 @@ function createServer(hostname, port) {
   if (config.get('serveStatic')) {
     app.use(require('koa-static')('dist'));
   }
+
+  app.use(function* index() {
+    yield send(this, 'dist/index.html');
+  });
 
   const envStr = process.env.NODE_ENV || 'development';
   let httpServer = null;
