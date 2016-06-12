@@ -1,5 +1,6 @@
 const initialState = {
   view: 'list',
+  loading: false,
 };
 
 const reducer = (state = initialState, action) => {
@@ -8,6 +9,18 @@ const reducer = (state = initialState, action) => {
       return {
         ...state,
         view: action.view,
+      };
+
+    case 'SET_LOADING':
+      return {
+        ...state,
+        loading: true,
+      };
+
+    case 'CLEAR_LOADING':
+      return {
+        ...state,
+        loading: false,
       };
 
     default:

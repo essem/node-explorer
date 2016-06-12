@@ -173,7 +173,7 @@ const funcs = {
     }
 
     yield fs.unlinkAsync(filepath);
-    this.status = 200;
+    this.body = '{}';
   },
 };
 

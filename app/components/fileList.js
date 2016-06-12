@@ -50,7 +50,7 @@ class FileList extends React.Component {
             onDeleteClick={this.handleDeleteClick}
           />
         </td>
-        <td style={sizeColumnStyle}>{file.size}</td>
+        <td style={sizeColumnStyle}>{file.isDirectory ? 'Directory' : file.size}</td>
         <td style={timeColumnStyle}>{file.mtime}</td>
       </tr>
     ));

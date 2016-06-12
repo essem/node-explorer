@@ -11,11 +11,13 @@ import Upload from './upload';
 import FileList from './fileList';
 import ThumbnailList from './thumbnailList';
 import Preview from './preview';
+import Spinner from 'react-spin';
 
 class App extends React.Component {
   static propTypes = {
     dispatch: React.PropTypes.func,
     view: React.PropTypes.string,
+    loading: React.PropTypes.bool,
     bookmarks: React.PropTypes.array,
   };
 
@@ -57,6 +59,7 @@ class App extends React.Component {
         <Alert />
         {this.renderList()}
         <Preview />
+        {this.props.loading ? <div className="loading"><Spinner /></div> : ''}
       </div>
     );
   }
@@ -64,6 +67,7 @@ class App extends React.Component {
 
 const mapStateToProps = state => ({
   view: state.ui.view,
+  loading: state.ui.loading,
   bookmarks: state.bookmarks,
 });
 
