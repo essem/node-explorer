@@ -46,6 +46,17 @@ class Preview extends React.Component {
     }
   };
 
+  handleClick = e => {
+    const outWidth = window.document.documentElement.clientWidth;
+    if (e.clientX < outWidth / 3) {
+      this.handlePrev();
+    } else if (e.clientX < outWidth * 2 / 3) {
+      this.handleClose();
+    } else {
+      this.handleNext();
+    }
+  };
+
   handleKeyUp = e => {
     if (e.keyCode === 27) { // ESC
       this.handleClose();
@@ -135,13 +146,10 @@ class Preview extends React.Component {
     captionStyle.top = `${captionY}px`;
 
     return (
-      <div className="preview">
-        <span
-          className="close"
-          onClick={this.handleClose}
-        >
-          &times;
-        </span>
+      <div
+        className="preview"
+        onClick={this.handleClick}
+      >
         <img
           style={imageStyle}
           src={src}

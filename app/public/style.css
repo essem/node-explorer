@@ -1,9 +1,10 @@
 body {
-  padding-top: 30px;
+  padding: 30px 0px;
 }
 
 table.explorer {
   width: 100%;
+  margin-bottom: 0px;
 }
 
 table.explorer tr td {
@@ -34,21 +35,4 @@ table.explorer tr td {
   height: 100%;
   overflow: auto;
   background-color: rgba(0, 0, 0, 0.8);
-}
-
-.preview .close {
-  position: absolute;
-  top: 15px;
-  right: 35px;
-  color: #f1f1f1;
-  font-size: 40px;
-  font-weight: bold;
-  transition: 0.3s;
-}
-
-.preview .close:hover,
-.preview .close:focus {
-  color: #bbb;
-  text-decoration: none;
-  cursor: pointer;
 }
