@@ -2,7 +2,7 @@ const parse = require('co-busboy');
 const sendfile = require('koa-sendfile');
 const path = require('path');
 const Promise = require('bluebird');
-const fs = Promise.promisifyAll(require('fs'));
+const fs = Promise.promisifyAll(require('fs-extra'));
 const config = require('config');
 const gm = require('gm');
 const logger = require('./logger');
@@ -172,7 +172,15 @@ const funcs = {
       return;
     }
 
-    yield fs.unlinkAsync(filepath);
+    if (!config.trashDir) {
+      yield fs.unlinkAsync(filepath);
+      this.body = '{}';
+      return;
+    }
+
+    const trashFilename = `${Date.now()}_${path.basename(filepath)}`;
+    const trashFilepath = path.resolve(config.trashDir, trashFilename);
+    yield fs.moveAsync(filepath, trashFilepath);
     this.body = '{}';
   },
 };
