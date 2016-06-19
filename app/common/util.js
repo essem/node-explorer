@@ -42,3 +42,20 @@ export function responsiveValue(width, phone, tablet, desktop, largeDesktop) {
   if (width < 1200) { return desktop; }
   return largeDesktop;
 }
+
+export function calcDisplaySize(outWidth, outHeight, imageWidth, imageHeight) {
+  const outRatio = outWidth / outHeight;
+  const imageRatio = imageWidth / imageHeight;
+  if (outRatio >= imageRatio) {
+    // do not use full size(1), need space for caption
+    const contentRatio = responsiveValue(outWidth, 0.9, 0.9, 0.8, 0.8);
+    const height = outHeight * contentRatio;
+    const width = height * imageRatio;
+    return { width, height };
+  }
+
+  const contentRatio = responsiveValue(outWidth, 1, 0.9, 0.8, 0.8);
+  const width = outWidth * contentRatio;
+  const height = width / imageRatio;
+  return { width, height };
+}

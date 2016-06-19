@@ -1,7 +1,7 @@
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import React from 'react';
-import { locToUrl, responsiveValue } from '../common/util';
+import { locToUrl, calcDisplaySize } from '../common/util';
 
 class PreviewJpg extends React.Component {
   static propTypes = {
@@ -18,23 +18,6 @@ class PreviewJpg extends React.Component {
     if (this.props.preview.name !== props.preview.name) {
       this.props.dispatch(actions.startPreviewJpg(props.loc, props.preview.name));
     }
-  }
-
-  calcDisplaySize(outWidth, outHeight, imageWidth, imageHeight) {
-    const outRatio = outWidth / outHeight;
-    const imageRatio = imageWidth / imageHeight;
-    if (outRatio > imageRatio) {
-      // do not use full size(1), need space for caption
-      const contentRatio = responsiveValue(outWidth, 0.9, 0.9, 0.8, 0.8);
-      const height = outHeight * contentRatio;
-      const width = height * imageRatio;
-      return { width, height };
-    }
-
-    const contentRatio = responsiveValue(outWidth, 1, 0.9, 0.8, 0.8);
-    const width = outWidth * contentRatio;
-    const height = width / imageRatio;
-    return { width, height };
   }
 
   render() {
@@ -62,26 +45,26 @@ class PreviewJpg extends React.Component {
 
     if (this.props.preview.orientation === 'RightTop') {
       // swap width and height
-      displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
+      displaySize = calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
       imageStyle.transform = ' rotate(90deg)';
       imageStyle.left = `${(outWidth - displaySize.height) / 2}px`;
       imageStyle.top = `${(outHeight - displaySize.width) / 2}px`;
     } else if (this.props.preview.orientation === 'BottomRight') {
-      displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
+      displaySize = calcDisplaySize(outWidth, outHeight, width, height);
       imageStyle.width = `${displaySize.width}px`;
       imageStyle.transform = ' rotate(180deg)';
       imageStyle.left = `${(outWidth - displaySize.width) / 2}px`;
       imageStyle.top = `${(outHeight - displaySize.height) / 2}px`;
     } else if (this.props.preview.orientation === 'LeftBottom') {
       // swap width and height
-      displaySize = this.calcDisplaySize(outWidth, outHeight, height, width);
+      displaySize = calcDisplaySize(outWidth, outHeight, height, width);
       imageStyle.width = `${displaySize.height}px`;
       imageStyle.transform = ' rotate(270deg)';
       imageStyle.left = `${(outWidth - displaySize.height) / 2}px`;
       imageStyle.top = `${(outHeight - displaySize.width) / 2}px`;
     } else { // TopLeft or unknown
-      displaySize = this.calcDisplaySize(outWidth, outHeight, width, height);
+      displaySize = calcDisplaySize(outWidth, outHeight, width, height);
       imageStyle.width = `${displaySize.width}px`;
       imageStyle.left = `${(outWidth - displaySize.width) / 2}px`;
       imageStyle.top = `${(outHeight - displaySize.height) / 2}px`;

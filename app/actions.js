@@ -1,11 +1,11 @@
 import { locToUrl, urlToLoc } from './common/util';
 
-function request(dispatch, path) {
+function request(dispatch, path, json = true) {
   dispatch({ type: 'SET_LOADING' });
   return fetch(`${API_HOST}${path}`, { credentials: 'same-origin' })
     .then(res => {
       dispatch({ type: 'CLEAR_LOADING' });
-      return res.json();
+      return json ? res.json() : res.text();
     })
     .catch(err => {
       dispatch({ type: 'CLEAR_LOADING' });
@@ -50,6 +50,15 @@ export function startPreviewJpg(loc, name) {
     request(dispatch, `/api/imageInfo${locToUrl(loc)}/${name}`)
       .then(info => {
         dispatch({ type: 'START_PREVIEW_JPG', info });
+      });
+  };
+}
+
+export function startPreviewTxt(loc, name) {
+  return dispatch => {
+    request(dispatch, `/api/download${locToUrl(loc)}/${name}`, false)
+      .then(text => {
+        dispatch({ type: 'START_PREVIEW_TXT', text });
       });
   };
 }

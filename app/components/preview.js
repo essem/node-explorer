@@ -2,6 +2,7 @@ import path from 'path';
 import { connect } from 'react-redux';
 import React from 'react';
 import PreviewJpg from './previewJpg';
+import PreviewTxt from './previewTxt';
 
 class Preview extends React.Component {
   static propTypes = {
@@ -63,6 +64,7 @@ class Preview extends React.Component {
   renderByExt() {
     switch (path.extname(this.props.preview.name).toLowerCase()) {
       case '.jpg': return <PreviewJpg />;
+      case '.txt': return <PreviewTxt />;
       default:
     }
 

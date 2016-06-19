@@ -13,6 +13,12 @@ const reducer = (state = null, action) => {
         ...action.info,
       };
 
+    case 'START_PREVIEW_TXT':
+      return {
+        ...state,
+        text: action.text,
+      };
+
     case 'STOP_PREVIEW':
       return null;
 
