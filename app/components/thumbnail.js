@@ -14,11 +14,9 @@ export default class Thumbnail extends React.Component {
   handleClick = () => {
     if (this.props.isDirectory) {
       this.props.onDirClick(this.props.name);
+    } else {
+      this.props.onPreviewClick(this.props.fileIndex);
     }
-  };
-
-  handlePreviewClick = () => {
-    this.props.onPreviewClick(this.props.fileIndex);
   };
 
   render() {
@@ -34,7 +32,7 @@ export default class Thumbnail extends React.Component {
           style={style}
           src={`${API_HOST}/api/image${this.props.fullpath}/${this.props.name}?type=sq100`}
           alt={this.props.name}
-          onClick={this.handlePreviewClick}
+          onClick={this.handleClick}
         />
       );
     }

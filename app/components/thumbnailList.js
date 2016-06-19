@@ -19,7 +19,7 @@ class ThumbnailList extends React.Component {
 
   handlePreviewClick = index => {
     const name = this.props.files[index].name;
-    this.props.dispatch(actions.startPreview(this.props.loc, index, name));
+    this.props.dispatch({ type: 'START_PREVIEW', loc: this.props.loc, index, name });
   };
 
   render() {

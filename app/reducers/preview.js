@@ -1,10 +1,17 @@
 const reducer = (state = null, action) => {
   switch (action.type) {
-    case 'PREPARE_PREVIEW':
-      return { backgroundOnly: true };
-
     case 'START_PREVIEW':
-      return action.preview;
+      return {
+        loc: action.loc,
+        index: action.index,
+        name: action.name,
+      };
+
+    case 'START_PREVIEW_JPG':
+      return {
+        ...state,
+        ...action.info,
+      };
 
     case 'STOP_PREVIEW':
       return null;

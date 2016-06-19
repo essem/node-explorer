@@ -35,3 +35,10 @@ export function locToUrl(loc) {
 
   return `/${loc.bookmark}/${loc.dir.join('/')}`;
 }
+
+export function responsiveValue(width, phone, tablet, desktop, largeDesktop) {
+  if (width < 768) { return phone; }
+  if (width < 992) { return tablet; }
+  if (width < 1200) { return desktop; }
+  return largeDesktop;
+}

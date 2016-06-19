@@ -45,13 +45,11 @@ export function deleteFile(loc, name) {
   };
 }
 
-export function startPreview(loc, index, name) {
+export function startPreviewJpg(loc, name) {
   return dispatch => {
-    dispatch({ type: 'PREPARE_PREVIEW' });
     request(dispatch, `/api/imageInfo${locToUrl(loc)}/${name}`)
       .then(info => {
-        const preview = Object.assign({}, info, { index, name });
-        dispatch({ type: 'START_PREVIEW', preview });
+        dispatch({ type: 'START_PREVIEW_JPG', info });
       });
   };
 }
