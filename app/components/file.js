@@ -1,6 +1,7 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import { Modal, Button, Glyphicon } from 'react-bootstrap';
+import { Modal, Button } from 'react-bootstrap';
+import FileIcon from './fileIcon';
 
 export default class File extends React.Component {
   static propTypes = {
@@ -74,7 +75,8 @@ export default class File extends React.Component {
     if (this.props.isDirectory) {
       content = (
         <div className="file" onClick={this.handleDirClick}>
-          <Glyphicon glyph="folder-close" /> {this.props.name}
+          <FileIcon directory />
+          {this.props.name}
         </div>
       );
     } else if (this.state.fileClicked) {
@@ -105,6 +107,7 @@ export default class File extends React.Component {
     } else {
       content = (
         <div className="file" onMouseEnter={this.handleFileEnter}>
+          <FileIcon filename={this.props.name} />
           {this.props.name}
         </div>
       );
