@@ -2,6 +2,7 @@
 
 const koa = require('koa');
 const cors = require('koa-cors');
+const bodyParser = require('koa-bodyparser');
 const send = require('koa-send');
 const auth = require('koa-basic-auth');
 const morgan = require('koa-morgan');
@@ -23,6 +24,8 @@ function createServer(hostname, port) {
   if (config.get('cors')) {
     app.use(cors());
   }
+
+  app.use(bodyParser());
 
   if (config.has('auth')) {
     app.use(function* authHandler(next) {

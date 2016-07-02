@@ -10,6 +10,7 @@ const reducer = (state = [], action) => {
             ...file,
             size: fileSizeIEC(file.size),
             mtime: moment(file.mtime).format('YYYY-MM-DD HH:mm:ss'),
+            selected: false,
           }
         ));
 
@@ -25,6 +26,31 @@ const reducer = (state = [], action) => {
 
         return files;
       }
+
+    case 'TOGGLE_FILE':
+      return state.map((file, index) => {
+        if (index !== action.index) {
+          return file;
+        }
+
+        return {
+          ...file,
+          selected: !file.selected,
+        };
+      });
+
+    case 'SELECT_NONE':
+      return state.map(file => {
+        if (!file.selected) {
+          return file;
+        }
+
+        return {
+          ...file,
+          selected: false,
+        };
+      });
+
     default:
       return state;
   }

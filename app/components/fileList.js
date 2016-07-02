@@ -1,6 +1,7 @@
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { Table } from 'react-bootstrap';
 import { locToUrl } from '../common/util';
 import File from './file';
@@ -10,6 +11,21 @@ class FileList extends React.Component {
     dispatch: React.PropTypes.func,
     loc: React.PropTypes.object,
     files: React.PropTypes.array,
+  };
+
+  componentDidMount() {
+    window.addEventListener('click', this.handleWindowClick);
+  }
+
+  componentWillUnmount() {
+    window.removeEventListener('click', this.handleWindowClick);
+  }
+
+  handleWindowClick = e => {
+    const clickedOutside = !ReactDOM.findDOMNode(this).contains(e.target);
+    if (clickedOutside) {
+      this.props.dispatch({ type: 'SELECT_NONE' });
+    }
   };
 
   handleDirClick = name => {
@@ -23,8 +39,8 @@ class FileList extends React.Component {
     this.props.dispatch({ type: 'START_PREVIEW', loc: this.props.loc, index, name });
   };
 
-  handleDeleteClick = name => {
-    this.props.dispatch(actions.deleteFile(this.props.loc, name));
+  handleToggle = index => {
+    this.props.dispatch({ type: 'TOGGLE_FILE', index });
   };
 
   render() {
@@ -38,22 +54,6 @@ class FileList extends React.Component {
     };
 
     let fullpath = locToUrl(this.props.loc);
-    let files = this.props.files.map((file, index) => (
-      <tr key={file.name}>
-        <td>
-          <File
-            fullpath={fullpath}
-            fileIndex={index}
-            {...file}
-            onDirClick={this.handleDirClick}
-            onPreviewClick={this.handlePreviewClick}
-            onDeleteClick={this.handleDeleteClick}
-          />
-        </td>
-        <td style={sizeColumnStyle}>{file.isDirectory ? 'Directory' : file.size}</td>
-        <td style={timeColumnStyle}>{file.mtime}</td>
-      </tr>
-    ));
 
     return (
       <Table striped hover className="explorer">
@@ -65,7 +65,17 @@ class FileList extends React.Component {
           </tr>
         </thead>
         <tbody>
-          {files}
+        {this.props.files.map((file, index) => (
+          <File
+            key={file.name}
+            fullpath={fullpath}
+            fileIndex={index}
+            {...file}
+            onDirClick={this.handleDirClick}
+            onPreviewClick={this.handlePreviewClick}
+            onToggle={this.handleToggle}
+          />
+        ))}
         </tbody>
       </Table>
     );

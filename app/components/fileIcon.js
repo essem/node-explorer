@@ -72,24 +72,30 @@ export default class File extends React.Component {
   static propTypes = {
     directory: React.PropTypes.bool,
     filename: React.PropTypes.string,
+    selected: React.PropTypes.bool,
+    onClick: React.PropTypes.func,
   }
 
   render() {
+    let style = fileStyle;
     if (this.props.directory) {
-      return (
-        <div style={dirStyle}>
-          <FontAwesome name="folder-o" />
-        </div>
-      );
+      style = dirStyle;
     }
 
-    let name = extensions[path.extname(this.props.filename)];
-    if (!name) {
-      name = 'file-o';
+    let name = 'file-o';
+    if (this.props.selected) {
+      name = 'check';
+    } else if (this.props.directory) {
+      name = 'folder-o';
+    } else {
+      name = extensions[path.extname(this.props.filename)];
+      if (!name) {
+        name = 'file-o';
+      }
     }
 
     return (
-      <div style={fileStyle}>
+      <div style={style} onClick={this.props.onClick}>
         <FontAwesome name={name} />
       </div>
     );

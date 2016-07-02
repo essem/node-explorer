@@ -166,21 +166,28 @@ const funcs = {
   },
 
   *delete(param) {
-    const filepath = getFilePath(param);
-    if (!filepath) {
+    const dir = getFilePath(param);
+    if (!dir) {
       this.body = 'invalid location';
       return;
     }
 
+    const files = this.request.body;
+
     if (!config.trashDir) {
-      yield fs.unlinkAsync(filepath);
+      for (const file of files) {
+        yield fs.unlinkAsync(path.resolve(dir, file));
+      }
       this.body = '{}';
       return;
     }
 
-    const trashFilename = `${Date.now()}_${path.basename(filepath)}`;
-    const trashFilepath = path.resolve(config.trashDir, trashFilename);
-    yield fs.moveAsync(filepath, trashFilepath);
+    for (const file of files) {
+      const sourceFilepath = path.resolve(dir, file);
+      const trashFilename = `${Date.now()}_${file}`;
+      const trashFilepath = path.resolve(config.trashDir, trashFilename);
+      yield fs.moveAsync(sourceFilepath, trashFilepath);
+    }
     this.body = '{}';
   },
 };

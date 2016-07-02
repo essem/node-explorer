@@ -10,6 +10,7 @@ import ViewSwitcher from './viewSwitcher';
 import Upload from './upload';
 import FileList from './fileList';
 import ThumbnailList from './thumbnailList';
+import BottomBar from './bottomBar';
 import Preview from './preview';
 import Spinner from 'react-spin';
 
@@ -58,6 +59,7 @@ class App extends React.Component {
         <Upload />
         <Alert />
         {this.renderList()}
+        <BottomBar />
         <Preview />
         {this.props.loading ? <div className="loading"><Spinner /></div> : ''}
       </div>

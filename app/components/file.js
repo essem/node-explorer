@@ -1,17 +1,23 @@
 import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
-import { Modal, Button } from 'react-bootstrap';
 import FileIcon from './fileIcon';
+
+const selectedStyle = {
+  backgroundColor: 'rgba(204,230,250,0.5)',
+};
 
 export default class File extends React.Component {
   static propTypes = {
     name: React.PropTypes.string,
     fullpath: React.PropTypes.string,
     fileIndex: React.PropTypes.number,
+    size: React.PropTypes.string,
+    mtime: React.PropTypes.string,
     isDirectory: React.PropTypes.bool,
+    selected: React.PropTypes.bool,
     onDirClick: React.PropTypes.func,
     onPreviewClick: React.PropTypes.func,
-    onDeleteClick: React.PropTypes.func,
+    onToggle: React.PropTypes.func,
   };
 
   constructor(props) {
@@ -19,100 +25,43 @@ export default class File extends React.Component {
     this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);
   }
 
-  state = {
-    fileClicked: false,
-    showDeleteConfirm: false,
+  handleClick = () => {
+    if (this.props.isDirectory) {
+      this.props.onDirClick(this.props.name);
+    } else {
+      this.props.onPreviewClick(this.props.fileIndex);
+    }
   };
 
-  handleDirClick = () => {
-    this.props.onDirClick(this.props.name);
-  };
-
-  handlePreviewClick = () => {
-    this.props.onPreviewClick(this.props.fileIndex);
-  };
-
-  handleFileEnter = () => {
-    this.setState({ fileClicked: true });
-  };
-
-  handleFileLeave = () => {
-    this.setState({ fileClicked: false });
-  };
-
-  handleModalOpen = () => {
-    this.setState({ showDeleteConfirm: true });
-  };
-
-  handleModalClose = () => {
-    this.setState({ showDeleteConfirm: false });
-  };
-
-  handleModalDelete = () => {
-    this.setState({ showDeleteConfirm: false });
-    this.props.onDeleteClick(this.props.name);
+  handleIconClick = e => {
+    e.stopPropagation(); // to prevent handleClick
+    this.props.onToggle(this.props.fileIndex);
   };
 
   render() {
-    let modal = (
-      <Modal show={this.state.showDeleteConfirm} onHide={this.handleModalClose}>
-        <Modal.Header>
-          <Modal.Title>Confirm</Modal.Title>
-        </Modal.Header>
-
-        <Modal.Body>
-          Do you want to delete the file '{this.props.name}'?
-        </Modal.Body>
-
-        <Modal.Footer>
-          <Button onClick={this.handleModalClose}>Close</Button>
-          <Button onClick={this.handleModalDelete} bsStyle="danger">Delete</Button>
-        </Modal.Footer>
-      </Modal>
+    return (
+      <tr style={this.props.selected ? selectedStyle : {}}>
+        <td>
+          <div
+            className="file"
+            onClick={this.handleClick}
+          >
+            <FileIcon
+              directory={this.props.isDirectory}
+              filename={this.props.name}
+              selected={this.props.selected}
+              onClick={this.handleIconClick}
+            />
+            {this.props.name}
+          </div>
+        </td>
+        <td style={{ textAlign: 'right' }}>
+          {this.props.isDirectory ? 'Directory' : this.props.size}
+        </td>
+        <td style={{ textAlign: 'right' }}>
+          {this.props.mtime}
+        </td>
+      </tr>
     );
-
-    let content = '';
-    if (this.props.isDirectory) {
-      content = (
-        <div className="file" onClick={this.handleDirClick}>
-          <FileIcon directory />
-          {this.props.name}
-        </div>
-      );
-    } else if (this.state.fileClicked) {
-      let formStyle = {
-        display: 'inline',
-        marginLeft: '10px',
-        marginRight: '10px',
-      };
-      content = (
-        <div className="file" onMouseLeave={this.handleFileLeave}>
-          <Button
-            bsStyle="primary"
-            bsSize="xsmall"
-            onClick={this.handlePreviewClick}
-          >
-            Preview
-          </Button>
-          <form
-            method="get"
-            style={formStyle}
-            action={`${API_HOST}/api/download${this.props.fullpath}/${this.props.name}`}
-          >
-            <Button type="submit" bsStyle="primary" bsSize="xsmall">Download</Button>
-          </form>
-          <Button bsStyle="danger" bsSize="xsmall" onClick={this.handleModalOpen}>Delete</Button>
-        </div>
-      );
-    } else {
-      content = (
-        <div className="file" onMouseEnter={this.handleFileEnter}>
-          <FileIcon filename={this.props.name} />
-          {this.props.name}
-        </div>
-      );
-    }
-
-    return <div>{content}{modal}</div>;
   }
 }

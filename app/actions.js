@@ -13,6 +13,27 @@ function request(dispatch, path, json = true) {
     });
 }
 
+function post(dispatch, path, body) {
+  dispatch({ type: 'SET_LOADING' });
+  const options = {
+    credentials: 'same-origin',
+    method: 'post',
+    headers: new Headers({
+      'Content-Type': 'application/json',
+    }),
+    body: JSON.stringify(body),
+  };
+  return fetch(`${API_HOST}${path}`, options)
+    .then(res => {
+      dispatch({ type: 'CLEAR_LOADING' });
+      return res.json();
+    })
+    .catch(err => {
+      dispatch({ type: 'CLEAR_LOADING' });
+      throw err;
+    });
+}
+
 export function changeLoc(loc, addHistory = true) {
   return dispatch => {
     request(dispatch, `/api/dir${locToUrl(loc)}`)
@@ -26,9 +47,9 @@ export function changeLoc(loc, addHistory = true) {
   };
 }
 
-export function deleteFile(loc, name) {
+export function deleteFiles(loc, names) {
   return dispatch => {
-    request(dispatch, `/api/delete${locToUrl(loc)}/${name}`)
+    post(dispatch, `/api/delete${locToUrl(loc)}`, names)
       .then(() => {
         dispatch(changeLoc(loc), false);
         dispatch({
