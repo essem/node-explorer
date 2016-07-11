@@ -1,32 +1,29 @@
 const webpack = require('webpack');
 const path = require('path');
 const HtmlwebpackPlugin = require('html-webpack-plugin');
-const config = require('config');
 
 module.exports = {
-  devtool: 'cheap-module-eval-source-map',
+  devtool: 'cheap-module-source-map',
   entry: './app/index.js',
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: 'bundle.js',
     publicPath: '/',
   },
-  devServer: {
-    hot: true,
-    inline: true,
-    progress: true,
-    historyApiFallback: true,
-    host: '0.0.0.0',
-    port: 5001,
-  },
   plugins: [
+    new webpack.optimize.OccurenceOrderPlugin(),
     new webpack.DefinePlugin({
       'process.env': {
-        NODE_ENV: JSON.stringify('development'),
+        NODE_ENV: JSON.stringify('production'),
       },
-      API_HOST: JSON.stringify(`http://localhost:${config.port}`),
+      API_HOST: JSON.stringify(''),
     }),
-    new webpack.HotModuleReplacementPlugin(),
+    new webpack.optimize.UglifyJsPlugin({
+      compressor: {
+        screw_ie8: true,
+        warnings: false,
+      },
+    }),
     new HtmlwebpackPlugin({
       title: 'node explorer',
       favicon: './app/public/favicon.ico',
