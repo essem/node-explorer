@@ -47,6 +47,25 @@ export function changeLoc(loc, addHistory = true) {
   };
 }
 
+export function createFolder(loc, name) {
+  return dispatch => {
+    post(dispatch, `/api/createFolder${locToUrl(loc)}`, { name })
+      .then(() => {
+        dispatch(changeLoc(loc), false);
+        dispatch({
+          type: 'SHOW_ALERT',
+          alert: { type: 'success', message: 'Success' },
+        });
+      })
+      .catch(err => {
+        dispatch({
+          type: 'SHOW_ALERT',
+          alert: { type: 'danger', message: err.toString() },
+        });
+      });
+  };
+}
+
 export function deleteFiles(loc, names) {
   return dispatch => {
     post(dispatch, `/api/delete${locToUrl(loc)}`, names)

@@ -6,7 +6,7 @@ import { urlToLoc } from '../common/util';
 import Alert from './alert';
 import Bookmark from './bookmark';
 import Location from './location';
-import ViewSwitcher from './viewSwitcher';
+import Toolbar from './toolbar';
 import Upload from './upload';
 import FileList from './fileList';
 import ThumbnailList from './thumbnailList';
@@ -54,7 +54,7 @@ class App extends React.Component {
         <ButtonToolbar>
           <Bookmark />
           <Location />
-          <ViewSwitcher />
+          <Toolbar />
         </ButtonToolbar>
         <Upload />
         <Alert />

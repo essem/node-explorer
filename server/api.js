@@ -165,6 +165,21 @@ const funcs = {
     this.status = 200;
   },
 
+  *createFolder(param) {
+    const dir = getFilePath(param);
+    if (!dir) {
+      this.body = 'invalid location';
+      return;
+    }
+
+    const folderName = this.request.body.name;
+
+    const folderFilepath = path.resolve(dir, folderName);
+    yield fs.mkdirAsync(folderFilepath);
+
+    this.body = '{}';
+  },
+
   *delete(param) {
     const dir = getFilePath(param);
     if (!dir) {
