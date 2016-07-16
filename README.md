@@ -4,7 +4,9 @@ Web-based file managing application.
 
 ## Screenshot
 
-![screenshot](/docs/screenshot.png?raw=true)
+![screenshot-file-list](/docs/screenshot-file-list.png?raw=true)
+![screenshot-icon-list](/docs/screenshot-icon-list.png?raw=true)
+![screenshot-preview](/docs/screenshot-preview.png?raw=true)
 
 ## Run
 

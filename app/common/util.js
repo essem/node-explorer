@@ -59,3 +59,11 @@ export function calcDisplaySize(outWidth, outHeight, imageWidth, imageHeight) {
   const height = width / imageRatio;
   return { width, height };
 }
+
+export function arrayChunk(array, chunkSize) {
+  const groups = [];
+  for (let i = 0; i < array.length; i += chunkSize) {
+    groups.push(array.slice(i, i + chunkSize));
+  }
+  return groups;
+}

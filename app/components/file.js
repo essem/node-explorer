@@ -2,10 +2,6 @@ import React from 'react';
 import PureRenderMixin from 'react-addons-pure-render-mixin';
 import FileIcon from './fileIcon';
 
-const selectedStyle = {
-  backgroundColor: 'rgba(204,230,250,0.5)',
-};
-
 export default class File extends React.Component {
   static propTypes = {
     name: React.PropTypes.string,
@@ -40,28 +36,56 @@ export default class File extends React.Component {
 
   render() {
     return (
-      <tr style={this.props.selected ? selectedStyle : {}}>
-        <td>
+      <div
+        onClick={this.handleClick}
+        style={{ padding: '5px 0px' }}
+      >
+        <div
+          style={{
+            float: 'left',
+            width: '50px',
+            verticalAlign: 'top',
+          }}
+        >
+          <FileIcon
+            directory={this.props.isDirectory}
+            filename={this.props.name}
+            selected={this.props.selected}
+            onClick={this.handleIconClick}
+          />
+        </div>
+        <div
+          style={{
+            marginLeft: '60px',
+            paddingBottom: '3px',
+            borderBottom: '1px solid #eee',
+          }}
+        >
           <div
-            className="file"
-            onClick={this.handleClick}
+            style={{
+              fontSize: '16px',
+              whiteSpace: 'pre-wrap',
+              wordWrap: 'break-word',
+              marginBottom: '5px',
+            }}
           >
-            <FileIcon
-              directory={this.props.isDirectory}
-              filename={this.props.name}
-              selected={this.props.selected}
-              onClick={this.handleIconClick}
-            />
             {this.props.name}
           </div>
-        </td>
-        <td style={{ textAlign: 'right' }}>
-          {this.props.isDirectory ? 'Directory' : this.props.size}
-        </td>
-        <td style={{ textAlign: 'right' }}>
-          {this.props.mtime}
-        </td>
-      </tr>
+          <div
+            style={{
+              fontSize: '10px',
+              color: '#aaa',
+            }}
+          >
+            <span>
+              {this.props.isDirectory ? 'Directory' : this.props.size}
+            </span>
+            <span className="pull-right hidden-xs">
+              {this.props.mtime}
+            </span>
+          </div>
+        </div>
+      </div>
     );
   }
 }
