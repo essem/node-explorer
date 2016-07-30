@@ -14,10 +14,12 @@ class Preview extends React.Component {
 
   componentDidMount() {
     window.addEventListener('keyup', this.handleKeyUp);
+    window.addEventListener('wheel', this.handleWheel);
   }
 
   componentWillUnmount() {
     window.removeEventListener('keyup', this.handleKeyUp);
+    window.removeEventListener('wheel', this.handleWheel);
   }
 
   handleClose = () => {
@@ -59,6 +61,10 @@ class Preview extends React.Component {
     } else if (e.keyCode === 39 || e.keyCode === 32) { // Right arrow or Space
       this.handleNext();
     }
+  };
+
+  handleWheel = e => {
+    e.preventDefault();
   };
 
   renderByExt() {
