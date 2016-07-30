@@ -63,8 +63,15 @@ class Preview extends React.Component {
 
   renderByExt() {
     switch (path.extname(this.props.preview.name).toLowerCase()) {
-      case '.jpg': return <PreviewJpg />;
-      case '.txt': return <PreviewTxt />;
+      case '.jpg':
+      case '.jpeg':
+      case '.png':
+        return <PreviewJpg />;
+      case '.txt':
+      case '.md':
+      case '.js':
+      case '.json':
+        return <PreviewTxt />;
       default:
     }
 
