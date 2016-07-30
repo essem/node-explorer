@@ -2,7 +2,6 @@ const reducer = (state = null, action) => {
   switch (action.type) {
     case 'START_PREVIEW':
       return {
-        loc: action.loc,
         index: action.index,
         name: action.name,
       };
@@ -20,6 +19,9 @@ const reducer = (state = null, action) => {
       };
 
     case 'STOP_PREVIEW':
+      return null;
+
+    case 'SET_LOC': // back button
       return null;
 
     default:

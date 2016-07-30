@@ -33,7 +33,8 @@ class App extends React.Component {
 
   handlePopState = () => {
     const loc = urlToLoc(location.pathname);
-    this.props.dispatch(actions.changeLoc(loc, false));
+    this.props.dispatch({ type: 'SET_LOC', loc });
+    this.props.dispatch(actions.updateFiles(loc));
   };
 
   renderList() {

@@ -3,7 +3,7 @@ import moment from 'moment';
 
 const reducer = (state = [], action) => {
   switch (action.type) {
-    case 'CHANGE_LOC':
+    case 'SET_FILES':
       {
         const files = action.files.map(file => (
           {

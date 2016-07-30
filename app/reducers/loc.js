@@ -1,11 +1,17 @@
+import { locToUrl } from '../common/util';
+
 const initialState = {
-  bookmark: 1,
+  bookmark: 0,
   dir: [],
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
-    case 'CHANGE_LOC':
+    case 'PUSH_LOC':
+      history.pushState(null, null, locToUrl(action.loc));
+      return action.loc;
+
+    case 'SET_LOC':
       return action.loc;
 
     default:

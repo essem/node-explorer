@@ -45,7 +45,7 @@ class Upload extends React.Component {
       });
     }
 
-    this.props.dispatch(actions.changeLoc(this.props.loc), false);
+    this.props.dispatch(actions.updateFiles(this.props.loc));
   };
 
   render() {

@@ -34,16 +34,20 @@ function post(dispatch, path, body) {
     });
 }
 
-export function changeLoc(loc, addHistory = true) {
+export function updateFiles(loc) {
   return dispatch => {
     request(dispatch, `/api/dir${locToUrl(loc)}`)
       .then(files => {
-        dispatch({ type: 'CHANGE_LOC', loc, files });
-        if (addHistory) {
-          history.pushState(null, null, `/${loc.bookmark}/${loc.dir.join('/')}`);
-        }
+        dispatch({ type: 'SET_FILES', files });
       })
       .catch(() => {});
+  };
+}
+
+export function changeLoc(loc) {
+  return dispatch => {
+    dispatch({ type: 'PUSH_LOC', loc });
+    dispatch(updateFiles(loc));
   };
 }
 
@@ -51,11 +55,11 @@ export function createFolder(loc, name) {
   return dispatch => {
     post(dispatch, `/api/createFolder${locToUrl(loc)}`, { name })
       .then(() => {
-        dispatch(changeLoc(loc), false);
         dispatch({
           type: 'SHOW_ALERT',
           alert: { type: 'success', message: 'Success' },
         });
+        dispatch(updateFiles(loc));
       })
       .catch(err => {
         dispatch({
@@ -70,11 +74,11 @@ export function deleteFiles(loc, names) {
   return dispatch => {
     post(dispatch, `/api/delete${locToUrl(loc)}`, names)
       .then(() => {
-        dispatch(changeLoc(loc), false);
         dispatch({
           type: 'SHOW_ALERT',
           alert: { type: 'success', message: 'Success' },
         });
+        dispatch(updateFiles(loc));
       })
       .catch(err => {
         dispatch({
@@ -108,7 +112,10 @@ export function initApp() {
     request(dispatch, '/api/bookmarks')
     .then(bookmarks => {
       dispatch({ type: 'SET_BOOKMARKS', bookmarks });
-      dispatch(changeLoc(urlToLoc(location.pathname), false));
+
+      const loc = urlToLoc(location.pathname);
+      dispatch({ type: 'SET_LOC', loc });
+      dispatch(updateFiles(loc));
     })
     .catch(() => {});
   };
