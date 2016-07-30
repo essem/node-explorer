@@ -2,6 +2,7 @@ import path from 'path';
 import { connect } from 'react-redux';
 import React from 'react';
 import PreviewJpg from './previewJpg';
+import PreviewVideo from './previewVideo';
 import PreviewTxt from './previewTxt';
 
 class Preview extends React.Component {
@@ -73,6 +74,10 @@ class Preview extends React.Component {
       case '.jpeg':
       case '.png':
         return <PreviewJpg />;
+      case '.mp4':
+      case '.ogv':
+      case '.webm':
+        return <PreviewVideo />;
       case '.txt':
       case '.md':
       case '.js':
