@@ -20,6 +20,7 @@ class App extends React.Component {
     view: React.PropTypes.string,
     loading: React.PropTypes.bool,
     bookmarks: React.PropTypes.array,
+    preview: React.PropTypes.object,
   };
 
   componentDidMount() {
@@ -61,7 +62,7 @@ class App extends React.Component {
         <Alert />
         {this.renderList()}
         <BottomBar />
-        <Preview />
+        {this.props.preview ? <Preview /> : ''}
         {this.props.loading ? <div className="loading"><Spinner /></div> : ''}
       </div>
     );
@@ -72,6 +73,7 @@ const mapStateToProps = state => ({
   view: state.ui.view,
   loading: state.ui.loading,
   bookmarks: state.bookmarks,
+  preview: state.preview,
 });
 
 export default connect(mapStateToProps)(App);
