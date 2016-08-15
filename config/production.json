@@ -2,8 +2,9 @@
   "serveStatic": true,
   "cors": false,
   "auth": {
-    "name": "tj",
-    "pass": "tobi"
+    "keys": ["some secret hurr"],
+    "account": "tj",
+    "password": "tobi"
   },
   "bookmarks": [
     { "name": "Root", "dir": "/" },

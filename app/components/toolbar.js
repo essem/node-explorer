@@ -1,7 +1,8 @@
 import { connect } from 'react-redux';
 import React from 'react';
 import { ButtonGroup, ButtonToolbar, Button, Glyphicon, Modal, FormControl } from 'react-bootstrap';
-import { createFolder } from '../actions';
+import FontAwesome from 'react-fontawesome';
+import { createFolder, logout } from '../actions';
 
 class Toolbar extends React.Component {
   static propTypes = {
@@ -38,6 +39,10 @@ class Toolbar extends React.Component {
 
   handleThumbnailView = () => {
     this.props.dispatch({ type: 'CHANGE_VIEW', view: 'thumbnail' });
+  };
+
+  handleLogout = () => {
+    this.props.dispatch(logout());
   };
 
   renderNewFolderModal() {
@@ -91,6 +96,13 @@ class Toolbar extends React.Component {
             onClick={this.handleThumbnailView}
           >
             <Glyphicon glyph="th" />
+          </Button>
+        </ButtonGroup>
+        <ButtonGroup>
+          <Button
+            onClick={this.handleLogout}
+          >
+            <FontAwesome name="sign-out" />
           </Button>
         </ButtonGroup>
         {this.renderNewFolderModal()}

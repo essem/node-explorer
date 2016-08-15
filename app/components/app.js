@@ -1,9 +1,10 @@
 import { connect } from 'react-redux';
 import * as actions from '../actions';
 import React from 'react';
-import { ButtonToolbar } from 'react-bootstrap';
+import { Grid, ButtonToolbar } from 'react-bootstrap';
 import { urlToLoc } from '../common/util';
 import Alert from './alert';
+import Login from './login';
 import Bookmark from './bookmark';
 import Location from './location';
 import Toolbar from './toolbar';
@@ -21,6 +22,7 @@ class App extends React.Component {
     loading: React.PropTypes.bool,
     bookmarks: React.PropTypes.array,
     preview: React.PropTypes.object,
+    ui: React.PropTypes.object,
   };
 
   componentDidMount() {
@@ -47,12 +49,16 @@ class App extends React.Component {
   }
 
   render() {
-    if (this.props.bookmarks.length === 0) {
-      return <div></div>;
+    if (this.props.ui.login === null) {
+      return <Grid />;
+    }
+
+    if (this.props.ui.login === false) {
+      return <Grid><Login /></Grid>;
     }
 
     return (
-      <div className="container">
+      <Grid>
         <ButtonToolbar>
           <Bookmark />
           <Location />
@@ -64,7 +70,7 @@ class App extends React.Component {
         <BottomBar />
         {this.props.preview ? <Preview /> : ''}
         {this.props.loading ? <div className="loading"><Spinner /></div> : ''}
-      </div>
+      </Grid>
     );
   }
 }
@@ -74,6 +80,7 @@ const mapStateToProps = state => ({
   loading: state.ui.loading,
   bookmarks: state.bookmarks,
   preview: state.preview,
+  ui: state.ui,
 });
 
 export default connect(mapStateToProps)(App);

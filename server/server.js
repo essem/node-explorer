@@ -4,7 +4,7 @@ const koa = require('koa');
 const cors = require('koa-cors');
 const bodyParser = require('koa-bodyparser');
 const send = require('koa-send');
-const auth = require('koa-basic-auth');
+const session = require('koa-session');
 const morgan = require('koa-morgan');
 const config = require('config');
 const fs = require('fs');
@@ -22,34 +22,43 @@ function createServer(hostname, port) {
   app.use(morgan.middleware('combined', { stream }));
 
   if (config.get('cors')) {
-    app.use(cors());
+    app.use(cors({ credentials: true }));
+  }
+
+  if (config.get('serveStatic')) {
+    app.use(require('koa-static')('dist'));
   }
 
   app.use(bodyParser());
 
   if (config.has('auth')) {
+    app.keys = config.auth.keys;
+    app.use(session(app));
+
+    const whiteList = new Set(['/', '/favicon.ico']);
     app.use(function* authHandler(next) {
-      try {
-        yield next;
-      } catch (err) {
-        if (err.status === 401) {
-          this.status = 401;
-          this.set('WWW-Authenticate', 'Basic');
-          this.body = 'Enter account and password.';
+      if (this.path === '/login') {
+        if (this.request.body.account === config.auth.account
+          && this.request.body.password === config.auth.password) {
+          this.session.login = config.auth.account;
+          this.body = JSON.stringify({ result: 'success' });
         } else {
-          throw err;
+          this.session.login = '';
+          this.body = JSON.stringify({ result: 'fail' });
         }
+      } else if (this.path === '/logout') {
+        this.session.login = '';
+        this.body = JSON.stringify({ result: 'success' });
+      } else if (this.session.login === config.auth.account
+        || whiteList.has(this.path)) {
+        yield next;
+      } else {
+        this.status = 401;
       }
     });
-
-    app.use(auth(config.get('auth')));
   }
 
   api(app);
-
-  if (config.get('serveStatic')) {
-    app.use(require('koa-static')('dist'));
-  }
 
   app.use(function* index() {
     yield send(this, 'dist/index.html');

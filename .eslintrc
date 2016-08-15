@@ -2,6 +2,7 @@
   "parser": "babel-eslint",
   "extends": "airbnb",
   "rules": {
+    "no-console": [ "error", { allow: [ "warn", "error" ] } ],
     "react/prefer-stateless-function": 0, // does not support hmr
     "react/jsx-no-bind": [2, { "allowArrowFunctions": false }],
   },

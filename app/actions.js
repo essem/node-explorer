@@ -2,8 +2,13 @@ import { locToUrl, urlToLoc } from './common/util';
 
 function request(dispatch, path, json = true) {
   dispatch({ type: 'SET_LOADING' });
-  return fetch(`${API_HOST}${path}`, { credentials: 'same-origin' })
+  return fetch(`${API_HOST}${path}`, { credentials: 'include' })
     .then(res => {
+      if (res.status === 401) {
+        dispatch({ type: 'SET_LOGIN', login: false });
+        throw new Error('unauthorized');
+      }
+
       dispatch({ type: 'CLEAR_LOADING' });
       return json ? res.json() : res.text();
     })
@@ -16,7 +21,7 @@ function request(dispatch, path, json = true) {
 function post(dispatch, path, body) {
   dispatch({ type: 'SET_LOADING' });
   const options = {
-    credentials: 'same-origin',
+    credentials: 'include',
     method: 'post',
     headers: new Headers({
       'Content-Type': 'application/json',
@@ -109,6 +114,11 @@ export function startPreviewTxt(loc, name) {
 
 export function initApp() {
   return dispatch => {
+    if (location.pathname === '/') {
+      dispatch({ type: 'SET_LOGIN', login: false });
+      return;
+    }
+
     request(dispatch, '/api/bookmarks')
     .then(bookmarks => {
       dispatch({ type: 'SET_BOOKMARKS', bookmarks });
@@ -116,7 +126,48 @@ export function initApp() {
       const loc = urlToLoc(location.pathname);
       dispatch({ type: 'SET_LOC', loc });
       dispatch(updateFiles(loc));
+      dispatch({ type: 'SET_LOGIN', login: true });
     })
     .catch(() => {});
+  };
+}
+
+export function login(account, password) {
+  return dispatch => {
+    post(dispatch, '/login', { account, password })
+    .then(res => {
+      if (res.result !== 'success') {
+        dispatch({ type: 'SET_LOGIN_MESSAGE', message: 'Login failed' });
+        return undefined;
+      }
+      return request(dispatch, '/api/bookmarks')
+      .then(bookmarks => {
+        dispatch({ type: 'SET_BOOKMARKS', bookmarks });
+        if (location.pathname === '/') {
+          dispatch(changeLoc({ bookmark: 0, dir: [] }));
+        } else {
+          const loc = urlToLoc(location.pathname);
+          dispatch({ type: 'SET_LOC', loc });
+          dispatch(updateFiles(loc));
+        }
+        dispatch({ type: 'SET_LOGIN', login: true });
+      });
+    })
+    .catch(err => {
+      console.error(err.stack);
+    });
+  };
+}
+
+export function logout() {
+  return dispatch => {
+    post(dispatch, '/logout')
+    .then(() => {
+      history.pushState(null, null, '/');
+      dispatch({ type: 'SET_LOGIN', login: false });
+    })
+    .catch(err => {
+      console.error(err.stack);
+    });
   };
 }

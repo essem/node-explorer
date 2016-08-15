@@ -1,10 +1,24 @@
 const initialState = {
+  login: null,
+  loginMessage: null,
   view: 'list',
   loading: false,
 };
 
 const reducer = (state = initialState, action) => {
   switch (action.type) {
+    case 'SET_LOGIN':
+      return {
+        ...state,
+        login: action.login,
+      };
+
+    case 'SET_LOGIN_MESSAGE':
+      return {
+        ...state,
+        loginMessage: action.message,
+      };
+
     case 'CHANGE_VIEW':
       return {
         ...state,
