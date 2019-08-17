@@ -20,7 +20,8 @@ class Login extends React.Component {
     window.removeEventListener('popstate', this.handlePopState);
   }
 
-  handleLogin = () => {
+  handleLogin = e => {
+    e.preventDefault();
     const account = ReactDOM.findDOMNode(this.refs.account).value;
     const password = ReactDOM.findDOMNode(this.refs.password).value;
     this.props.dispatch(actions.login(account, password));
@@ -45,20 +46,22 @@ class Login extends React.Component {
           <Col lg={4} md={4} sm={8} xs={12}>
             <Panel>
               {this.renderAlert()}
-              <FormGroup>
-                <ControlLabel>Account</ControlLabel>
-                <FormControl ref="account" type="text" autoFocus />
-              </FormGroup>
-              <FormGroup>
-                <ControlLabel>Password</ControlLabel>
-                <FormControl ref="password" type="password" />
-              </FormGroup>
-              <Button
-                bsStyle="primary"
-                onClick={this.handleLogin}
-              >
-                Login
-              </Button>
+              <form onSubmit={this.handleLogin}>
+                <FormGroup>
+                  <ControlLabel>Account</ControlLabel>
+                  <FormControl ref="account" type="text" autoFocus />
+                </FormGroup>
+                <FormGroup>
+                  <ControlLabel>Password</ControlLabel>
+                  <FormControl ref="password" type="password" />
+                </FormGroup>
+                <Button
+                  type="submit"
+                  bsStyle="primary"
+                >
+                  Login
+                </Button>
+              </form>
             </Panel>
           </Col>
         </Row>
