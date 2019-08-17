@@ -4,6 +4,7 @@ import React from 'react';
 import PreviewJpg from './previewJpg';
 import PreviewVideo from './previewVideo';
 import PreviewTxt from './previewTxt';
+import { locToUrl } from '../common/util';
 
 class Preview extends React.Component {
   static propTypes = {
@@ -45,6 +46,14 @@ class Preview extends React.Component {
 
   handleClick = e => {
     const outWidth = window.document.documentElement.clientWidth;
+    const outHeight = window.document.documentElement.clientHeight;
+    if (e.clientY < outHeight / 3) {
+      const fullpath = locToUrl(this.props.loc);
+      const index = this.props.preview.index;
+      const name = this.props.files[index].name;
+      window.open(`${API_HOST}/api/download${fullpath}/${name}`, '_blank');
+      return;
+    }
     if (e.clientX < outWidth / 3) {
       this.handlePrev();
     } else if (e.clientX < outWidth * 2 / 3) {
